@@ -4,6 +4,13 @@ import com.eatpizzaquickly.jariotte.domain.common.advice.ApiResponse;
 import com.eatpizzaquickly.jariotte.domain.common.config.JwtUtils;
 import com.eatpizzaquickly.jariotte.domain.common.dto.CustomUserDetails;
 import com.eatpizzaquickly.jariotte.domain.coupon.dto.CouponResponseDto;
+import com.eatpizzaquickly.jariotte.domain.payment.dto.response.GetPaymentResponse;
+import com.eatpizzaquickly.jariotte.domain.payment.dto.response.PostPaymentResponse;
+import com.eatpizzaquickly.jariotte.domain.payment.entity.PayStatus;
+import com.eatpizzaquickly.jariotte.domain.payment.service.PaymentService;
+import com.eatpizzaquickly.jariotte.domain.reservation.dto.response.PostReservationResponse;
+import com.eatpizzaquickly.jariotte.domain.reservation.entity.ReservationStatus;
+import com.eatpizzaquickly.jariotte.domain.reservation.service.ReservationService;
 import com.eatpizzaquickly.jariotte.domain.user.dto.UserRequestDto;
 import com.eatpizzaquickly.jariotte.domain.user.dto.UserResponseDto;
 import com.eatpizzaquickly.jariotte.domain.user.service.UserService;
@@ -21,8 +28,8 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final JwtUtils jwtUtils;
-
+    private final PaymentService paymentService;
+    private final ReservationService reservationService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponseDto>> signUp(@Valid @RequestBody UserRequestDto userRequestDto) {
@@ -52,6 +59,19 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<CouponResponseDto>>> getMyCoupons(@AuthenticationPrincipal CustomUserDetails authUser) {
         List<CouponResponseDto> coupon = userService.getCoupon(authUser.getEmail());
         return ResponseEntity.ok(ApiResponse.success("사용 가능한 쿠폰 조회 성공",coupon));
+    }
+
+    @GetMapping("/my-reservation/{status}")
+    public ResponseEntity<ApiResponse<List<PostReservationResponse>>> getMyReservations(@AuthenticationPrincipal CustomUserDetails authUser,
+                                                                                    @PathVariable ReservationStatus status) {
+        List<PostReservationResponse> Reservation = reservationService.getReservationsByUserIdAndStatus(authUser.getEmail(),status);
+        return ResponseEntity.ok(ApiResponse.success("예매 내역 조회 성공",Reservation));
+    }
+
+    @GetMapping("/my-pay/{status}")
+    public ResponseEntity<ApiResponse<List<GetPaymentResponse>>> getMyPayments(@AuthenticationPrincipal CustomUserDetails authUser, @PathVariable PayStatus status) {
+        List<GetPaymentResponse> payment = paymentService.getPayments(authUser.getEmail(),status);
+        return ResponseEntity.ok(ApiResponse.success("결제 내역 조회",payment));
     }
 
     @PatchMapping

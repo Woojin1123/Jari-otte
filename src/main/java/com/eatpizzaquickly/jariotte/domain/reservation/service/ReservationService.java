@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
@@ -67,5 +69,15 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELED);
 
         reservationRepository.save(reservation);
+    }
+    @Transactional(readOnly = true)
+    public List<PostReservationResponse> getReservationsByUserIdAndStatus(String email, ReservationStatus status) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException("유저를 찾을 수 없습니다.")
+        );
+
+        return reservationRepository.findByUserAndStatus(user, status).stream()
+                .map(PostReservationResponse::from)
+                .toList();
     }
 }

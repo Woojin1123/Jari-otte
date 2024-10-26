@@ -35,4 +35,8 @@ public class GetPaymentResponse {
         this.message = message;
         this.code = code;
     }
+    // 정적 팩토리 메서드
+    public static GetPaymentResponse from(Payment payment) {
+        return new GetPaymentResponse(payment);
+    }
 }
