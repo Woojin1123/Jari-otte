@@ -25,10 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -127,8 +125,8 @@ public class PaymentService {
             TossPaymentResponse tossResponse = requestTossPayment(paymentKey, orderId, amount);
 
             // 3. 결제 성공 처리
-            payment.setPayStatus(PayStatus.PAID);
-            payment.setPaymentKey(tossResponse.getPaymentKey());
+            payment.updateStatus(PayStatus.PAID);
+            payment.updatePaymentKey(tossResponse.getPaymentKey());
             paymentRepository.save(payment);
 
             // 예약 상태 업데이트
@@ -145,7 +143,7 @@ public class PaymentService {
 
         } catch (HttpClientErrorException e) {
             // 5. HTTP 에러 처리
-            payment.setPayStatus(PayStatus.FAILED);
+            payment.updateStatus(PayStatus.FAILED);
             paymentRepository.save(payment);
 
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -156,7 +154,7 @@ public class PaymentService {
             throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         } catch (Exception e) {
             // 6. 기타 예외 처리
-            payment.setPayStatus(PayStatus.FAILED);
+            payment.updateStatus(PayStatus.FAILED);
             paymentRepository.save(payment);
             throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -165,7 +163,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByPayUid(orderId)
                 .orElseThrow(() -> new RuntimeException("결제를 찾을 수 없습니다."));
 
-        payment.setPayStatus(PayStatus.FAILED);
+        payment.updateStatus(PayStatus.FAILED);
         paymentRepository.save(payment);
 
         return GetPaymentResponse.builder()
@@ -181,9 +179,6 @@ public class PaymentService {
         Payment payment = paymentRepository.findByPaymentKey(paymentKey)
                 .orElseThrow(() -> new PaymentNotFoundException("결제 정보를 찾을 수 없습니다."));
 
-        Reservation reservation = reservationRepository.findById(payment.getReservation().getId()).orElseThrow(
-                () -> new NotFoundException("예약을 찾을수 없습니다."));
-
         // 2. 결제 상태 확인
         if (payment.getPayStatus() == PayStatus.CANCELLED) {
             throw new PaymentAlreadyCanceledException("이미 취소된 결제입니다.");
@@ -198,11 +193,8 @@ public class PaymentService {
             TossPaymentResponse tossResponse = requestTossPaymentCancel(paymentKey, cancelReason);
 
             // 4. 결제 취소 상태 업데이트
-            payment.setPayStatus(PayStatus.CANCELLED);
+            payment.updateStatus(PayStatus.CANCELLED);
             paymentRepository.save(payment);
-
-            // 예약 상태 업데이트
-            reservation.statusUpdate(ReservationStatus.CANCELED);
 
             return GetPaymentResponse.builder()
                     .payStatus(PayStatus.CANCELLED)
@@ -261,5 +253,12 @@ public class PaymentService {
         }
 
         return response.getBody();
+    }
+
+    @Transactional(readOnly = true)
+    public List<GetPaymentResponse> getPayments(String email, PayStatus payStatus) {
+        return paymentRepository.findByReservation_User_EmailAndPayStatus(email, payStatus).stream()
+                .map(GetPaymentResponse::from)
+                .collect(Collectors.toList());
     }
 }

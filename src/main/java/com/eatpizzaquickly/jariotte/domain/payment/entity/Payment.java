@@ -45,11 +45,13 @@ public class Payment {
         this.reservation = reservation;
     }
 
-    public void setPayStatus(PayStatus payStatus) {
+    public void updateStatus(PayStatus payStatus) {
         this.payStatus = payStatus;
     }
 
-    public void setPaymentKey(String paymentKey) {
+    public void updatePaymentKey(String paymentKey) {
         this.paymentKey = paymentKey;
     }
+
+
 }

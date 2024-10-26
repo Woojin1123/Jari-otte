@@ -1,47 +1,58 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/jariotte?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: root
 
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: localhost
       port: 6379
 
 server:
+  port: 8081
   servlet:
     encoding:
       charset: UTF-8
       enabled: true
       force: true
-  port: 8080
+
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+    key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
+
+logging:
+  level:
+    root: info
+
 cloud:
   aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}  # AWS 비밀 키
-    region:
-      static: ${AWS_REGION}  # AWS 리전
     s3:
-      bucket: ${AWS_S3_BUCKET}  # S3 버킷 이름
+      bucket: nbcamplus
+    region:
+      static: ap-northeast-2
+    credentials:
+      accessKey: AKIASVLKCDTRDPDCW77N
+      secretKey: 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
     stack:
       auto: false
+
 payment:
   toss:
-    url: ${PAYMENT_URL}
-    test_client_api_key: ${PAYMENT_CLIENT_KEY}
-    test_secret_api_key: ${PAYMENT_SECRET_KEY}
-    success_url: ${PAYMENT_SUCCESS_URL}
-    fail_url: ${PAYMENT_FAIL_URL}
+    url: "https://api.tosspayments.com/v1/payments"
+    test_client_api_key: test_ck_d46qopOB896o7NDMkGm73ZmM75y0
+    test_secret_api_key: test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R
+    success_url: "http://localhost:8080/api/v1/payments/toss/success"
+    fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
+
