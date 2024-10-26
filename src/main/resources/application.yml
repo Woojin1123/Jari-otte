@@ -38,6 +38,7 @@ cloud:
       bucket: ${AWS_S3_BUCKET}  # S3 버킷 이름
     stack:
       auto: false
+
 payment:
   toss:
     url: ${PAYMENT_URL}
