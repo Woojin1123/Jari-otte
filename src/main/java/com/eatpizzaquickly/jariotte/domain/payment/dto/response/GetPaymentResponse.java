@@ -3,24 +3,36 @@ package com.eatpizzaquickly.jariotte.domain.payment.dto.response;
 import com.eatpizzaquickly.jariotte.domain.payment.entity.PayMethod;
 import com.eatpizzaquickly.jariotte.domain.payment.entity.PayStatus;
 import com.eatpizzaquickly.jariotte.domain.payment.entity.Payment;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class GetPaymentResponse {
+
     private String payUid;
+
     private String paymentKey;
+
     private Long amount;
+
     private String payInfo;
+
     private PayMethod payMethod;
+
     private PayStatus payStatus;
+
+    @JsonIgnore
     private String message;
+
+    @JsonIgnore
     private String code;
 
     public GetPaymentResponse(Payment payment) {
         this.payUid = payment.getPayUid();
         this.amount = payment.getAmount();
         this.payInfo = payment.getPayInfo();
+        this.paymentKey = payment.getPaymentKey();
         this.payMethod = payment.getPayMethod();
         this.payStatus = payment.getPayStatus();
     }
