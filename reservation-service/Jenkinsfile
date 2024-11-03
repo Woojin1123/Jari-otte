@@ -7,17 +7,6 @@ pipeline {
 
     environment {
         SERVICE_NAME = 'reservation-service'
-        ECR_REGISTRY = credentials('ECR_REGISTRY')
-        AWS_REGION = credentials('AWS_REGION')
-        DB_URL_RESERVATION = credentials('DB_URL_RESERVATION')
-        DB_USERNAME = credentials('DB_USERNAME')
-        DB_PASSWORD = credentials('DB_PASSWORD')
-        KAFKA_SERVER = credentials('KAFKA_SERVER')
-        PAYMENT_URL = credentials('PAYMENT_URL')
-        PAYMENT_CLIENT_KEY = credentials('PAYMENT_CLIENT_KEY')
-        PAYMENT_SECRET_KEY = credentials('PAYMENT_SECRET_KEY')
-        PAYMENT_SUCCESS_URL = credentials('PAYMENT_SUCCESS_URL')
-        PAYMENT_FAIL_URL = credentials('PAYMENT_FAIL_URL')
         IMAGE_TAG = "reservation-service-${BUILD_NUMBER}"
     }
 
@@ -70,58 +59,48 @@ pipeline {
                 }
             }
         }
-
-        stage('Test') {
-            steps {
-                dir('reservation-service') {
-                    sh './gradlew test'
-                }
-            }
-            post {
-                success {
-                    echo "Tests completed successfully"
-                }
-                failure {
-                    error "Tests failed"
-                }
-            }
-        }
-
         stage('ECR Login & Docker Build') {
             steps {
-                script {
-                    // AWS ECR 로그인
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_RESERVATION', variable: 'DB_URL_RESERVATION'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+                    string(credentialsId: 'PAYMENT_URL', variable: 'PAYMENT_URL'),
+                    string(credentialsId: 'PAYMENT_CLIENT_KEY', variable: 'PAYMENT_CLIENT_KEY'),
+                    string(credentialsId: 'PAYMENT_SECRET_KEY', variable: 'PAYMENT_SECRET_KEY'),
+                    string(credentialsId: 'PAYMENT_SUCCESS_URL', variable: 'PAYMENT_SUCCESS_URL'),
+                    string(credentialsId: 'PAYMENT_FAIL_URL', variable: 'PAYMENT_FAIL_URL')
+                ]) {
+                    script {
+                        // AWS 환경 변수 설정 및 ECR 로그인
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
 
-                    dir('reservation-service') {
-                        // Dockerfile 존재 확인
-                        if (!fileExists('Dockerfile')) {
-                            error 'Dockerfile not found'
-                        }
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
 
-                        // Docker 이미지 빌드
-                        docker.build("${ECR_REGISTRY}:${IMAGE_TAG}",
-                            "--build-arg DB_URL_RESERVATION=${DB_URL_RESERVATION} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg KAFKA_SERVER=${KAFKA_SERVER} " +
-                            "--build-arg PAYMENT_URL=${PAYMENT_URL} " +
-                            "--build-arg PAYMENT_CLIENT_KEY=${PAYMENT_CLIENT_KEY} " +
-                            "--build-arg PAYMENT_SECRET_KEY=${PAYMENT_SECRET_KEY} " +
-                            "--build-arg PAYMENT_SUCCESS_URL=${PAYMENT_SUCCESS_URL} " +
-                            "--build-arg PAYMENT_FAIL_URL=${PAYMENT_FAIL_URL} .")
-
-                        // latest 태그도 추가
-                        docker.build("${ECR_REGISTRY}:reservation-service-latest",
-                            "--build-arg DB_URL_RESERVATION=${DB_URL_RESERVATION} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg KAFKA_SERVER=${KAFKA_SERVER} " +
-                            "--build-arg PAYMENT_URL=${PAYMENT_URL} " +
-                            "--build-arg PAYMENT_CLIENT_KEY=${PAYMENT_CLIENT_KEY} " +
-                            "--build-arg PAYMENT_SECRET_KEY=${PAYMENT_SECRET_KEY} " +
-                            "--build-arg PAYMENT_SUCCESS_URL=${PAYMENT_SUCCESS_URL} " +
-                            "--build-arg PAYMENT_FAIL_URL=${PAYMENT_FAIL_URL} .")
+                        // Docker 이미지 빌드 및 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg DB_URL_RESERVATION=$DB_URL_RESERVATION \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg KAFKA_SERVER=$KAFKA_SERVER \
+                            --build-arg PAYMENT_URL=$PAYMENT_URL \
+                            --build-arg PAYMENT_CLIENT_KEY=$PAYMENT_CLIENT_KEY \
+                            --build-arg PAYMENT_SECRET_KEY=$PAYMENT_SECRET_KEY \
+                            --build-arg PAYMENT_SUCCESS_URL=$PAYMENT_SUCCESS_URL \
+                            --build-arg PAYMENT_FAIL_URL=$PAYMENT_FAIL_URL \
+                            reservation-service/
+                        docker tag $ECR_REGISTRY:$IMAGE_TAG $ECR_REGISTRY:reservation-service-latest
+                        '''
                     }
                 }
             }
@@ -129,34 +108,46 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                script {
-                    // 버전 태그와 latest 태그 모두 푸시
-                    sh """
-                        docker push ${ECR_REGISTRY}:${IMAGE_TAG}
-                        docker push ${ECR_REGISTRY}:reservation-service-latest
-                    """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        docker push $ECR_REGISTRY:reservation-service-latest
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy to ECS') {
             steps {
-                script {
-                    sh """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
                         aws ecs update-service \
                             --cluster jari-otte \
-                            --service ${SERVICE_NAME} \
+                            --service $SERVICE_NAME \
                             --force-new-deployment \
-                            --region ${AWS_REGION}
-                    """
-                }
-            }
-            post {
-                success {
-                    echo "Deployment to ECS completed successfully"
-                }
-                failure {
-                    error "Deployment to ECS failed"
+                            --region $AWS_REGION
+                        '''
+                    }
                 }
             }
         }

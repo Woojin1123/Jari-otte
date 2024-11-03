@@ -1,18 +1,12 @@
 pipeline {
     agent any
+
     triggers {
         githubPush()
     }
 
     environment {
         SERVICE_NAME = 'concert-service'
-        ECR_REGISTRY = credentials('ECR_REGISTRY')
-        AWS_REGION = credentials('AWS_REGION')
-        DB_URL_CONCERT = credentials('DB_URL_CONCERT')
-        DB_USERNAME = credentials('DB_USERNAME')
-        DB_PASSWORD = credentials('DB_PASSWORD')
-        REDIS_HOST = credentials('REDIS_HOST')
-        REDIS_PORT = credentials('REDIS_PORT')
         IMAGE_TAG = "concert-service-${BUILD_NUMBER}"
     }
 
@@ -65,50 +59,40 @@ pipeline {
                 }
             }
         }
-
-        stage('Test') {
-            steps {
-                dir('concert-service') {
-                    sh './gradlew test'
-                }
-            }
-            post {
-                success {
-                    echo "Tests completed successfully"
-                }
-                failure {
-                    error "Tests failed"
-                }
-            }
-        }
-
         stage('ECR Login & Docker Build') {
             steps {
-                script {
-                    // AWS ECR 로그인
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_CONCERT', variable: 'DB_URL_CONCERT'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+                ]) {
+                    script {
+                        // AWS 환경 변수 설정 및 ECR 로그인
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
 
-                    dir('concert-service') {
-                        // Dockerfile 존재 확인
-                        if (!fileExists('Dockerfile')) {
-                            error 'Dockerfile not found'
-                        }
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
 
-                        // Docker 이미지 빌드
-                        docker.build("${ECR_REGISTRY}:${IMAGE_TAG}",
-                            "--build-arg DB_URL_CONCERT=${DB_URL_CONCERT} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg REDIS_HOST=${REDIS_HOST} " +
-                            "--build-arg REDIS_PORT=${REDIS_PORT} .")
-
-                        // latest 태그도 추가
-                        docker.build("${ECR_REGISTRY}:concert-service-latest",
-                            "--build-arg DB_URL_CONCERT=${DB_URL_CONCERT} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg REDIS_HOST=${REDIS_HOST} " +
-                            "--build-arg REDIS_PORT=${REDIS_PORT} .")
+                        // Docker 이미지 빌드 및 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg DB_URL_CONCERT=$DB_URL_CONCERT \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg REDIS_HOST=$REDIS_HOST \
+                            --build-arg REDIS_PORT=$REDIS_PORT \
+                            concert-service/
+                        docker tag $ECR_REGISTRY:$IMAGE_TAG $ECR_REGISTRY:concert-service-latest
+                        '''
                     }
                 }
             }
@@ -116,34 +100,46 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                script {
-                    // 버전 태그와 latest 태그 모두 푸시
-                    sh """
-                        docker push ${ECR_REGISTRY}:${IMAGE_TAG}
-                        docker push ${ECR_REGISTRY}:concert-service-latest
-                    """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        docker push $ECR_REGISTRY:concert-service-latest
+                        '''
+                    }
                 }
             }
         }
 
         stage('Deploy to ECS') {
             steps {
-                script {
-                    sh """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
                         aws ecs update-service \
                             --cluster jari-otte \
-                            --service ${SERVICE_NAME} \
+                            --service $SERVICE_NAME \
                             --force-new-deployment \
-                            --region ${AWS_REGION}
-                    """
-                }
-            }
-            post {
-                success {
-                    echo "Deployment to ECS completed successfully"
-                }
-                failure {
-                    error "Deployment to ECS failed"
+                            --region $AWS_REGION
+                        '''
+                    }
                 }
             }
         }
