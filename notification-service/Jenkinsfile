@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+
+    environment {
+        SERVICE_NAME = 'notification-service'
+        ECR_REGISTRY = credentials('ECR_REGISTRY')
+        AWS_REGION = credentials('AWS_REGION')
+        KAFKA_SERVER = credentials('KAFKA_SERVER')
+        MAIL_USERNAME = credentials('MAIL_USERNAME')
+        MAIL_PASSWORD = credentials('MAIL_PASSWORD')
+        IMAGE_TAG = "notification-service-${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('notification-service') {
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build -x test
+                    '''
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('notification-service') {
+                    sh './gradlew test'
+                }
+            }
+        }
+
+        stage('ECR Login & Docker Build') {
+            steps {
+                script {
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+
+                    dir('notification-service') {
+                        docker.build("${ECR_REGISTRY}:${IMAGE_TAG}",
+                            "--build-arg KAFKA_SERVER=${KAFKA_SERVER} " +
+                            "--build-arg MAIL_USERNAME=${MAIL_USERNAME} " +
+                            "--build-arg MAIL_PASSWORD=${MAIL_PASSWORD} .")
+                    }
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    sh "docker push ${ECR_REGISTRY}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Deploy to ECS') {
+            steps {
+                script {
+                    sh """
+                        aws ecs update-service \
+                            --cluster jari-otte \
+                            --service ${SERVICE_NAME} \
+                            --force-new-deployment \
+                            --region ${AWS_REGION}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline Successfully Completed"
+            echo "Built and Deployed Image: ${ECR_REGISTRY}:${IMAGE_TAG}"
+        }
+        failure {
+            echo "Pipeline Failed"
+        }
+    }
+}
