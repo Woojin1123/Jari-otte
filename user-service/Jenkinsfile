@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         SERVICE_NAME = 'user-service'
         ECR_REGISTRY = credentials('ECR_REGISTRY')
@@ -19,9 +23,33 @@ pipeline {
     }
 
     stages {
+        stage('Check Changes') {
+            steps {
+                script {
+                    // 변경된 파일 목록 가져오기
+                    def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
+
+                    // user-service 디렉토리의 변경사항이 있는지 확인
+                    def serviceChanged = changes.split('\n').any { it.startsWith('user-service/') }
+
+                    if (!serviceChanged) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error('No changes in user-service directory, skipping build')
+                    }
+                    echo "Changes detected in user-service directory. Proceeding with build..."
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'release/v2',
+                    url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
+
+                script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    echo "Building commit: ${gitCommit}"
+                }
             }
         }
 
@@ -34,6 +62,14 @@ pipeline {
                     '''
                 }
             }
+            post {
+                success {
+                    echo "Build stage completed successfully"
+                }
+                failure {
+                    error "Build stage failed"
+                }
+            }
         }
 
         stage('Test') {
@@ -42,15 +78,43 @@ pipeline {
                     sh './gradlew test'
                 }
             }
+            post {
+                success {
+                    echo "Tests completed successfully"
+                }
+                failure {
+                    error "Tests failed"
+                }
+            }
         }
 
         stage('ECR Login & Docker Build') {
             steps {
                 script {
+                    // AWS ECR 로그인
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
 
                     dir('user-service') {
+                        // Dockerfile 존재 확인
+                        if (!fileExists('Dockerfile')) {
+                            error 'Dockerfile not found'
+                        }
+
+                        // Docker 이미지 빌드
                         docker.build("${ECR_REGISTRY}:${IMAGE_TAG}",
+                            "--build-arg DB_URL_USER=${DB_URL_USER} " +
+                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
+                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
+                            "--build-arg REDIS_HOST=${REDIS_HOST} " +
+                            "--build-arg REDIS_PORT=${REDIS_PORT} " +
+                            "--build-arg MAIL_USERNAME=${MAIL_USERNAME} " +
+                            "--build-arg MAIL_PASSWORD=${MAIL_PASSWORD} " +
+                            "--build-arg JWT_KEY=${JWT_KEY} " +
+                            "--build-arg KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID} " +
+                            "--build-arg REDIRECT_URL=${REDIRECT_URL} .")
+
+                        // latest 태그도 추가
+                        docker.build("${ECR_REGISTRY}:user-service-latest",
                             "--build-arg DB_URL_USER=${DB_URL_USER} " +
                             "--build-arg DB_USERNAME=${DB_USERNAME} " +
                             "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
@@ -69,7 +133,11 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 script {
-                    sh "docker push ${ECR_REGISTRY}:${IMAGE_TAG}"
+                    // 버전 태그와 latest 태그 모두 푸시
+                    sh """
+                        docker push ${ECR_REGISTRY}:${IMAGE_TAG}
+                        docker push ${ECR_REGISTRY}:user-service-latest
+                    """
                 }
             }
         }
@@ -86,16 +154,40 @@ pipeline {
                     """
                 }
             }
+            post {
+                success {
+                    echo "Deployment to ECS completed successfully"
+                }
+                failure {
+                    error "Deployment to ECS failed"
+                }
+            }
         }
     }
 
     post {
         success {
-            echo "Pipeline Successfully Completed"
-            echo "Built and Deployed Image: ${ECR_REGISTRY}:${IMAGE_TAG}"
+            echo """
+            ===========================================
+            Pipeline Successfully Completed
+            Service: ${SERVICE_NAME}
+            Image: ${ECR_REGISTRY}:${IMAGE_TAG}
+            Latest Image: ${ECR_REGISTRY}:user-service-latest
+            ===========================================
+            """
         }
         failure {
-            echo "Pipeline Failed"
+            echo """
+            ===========================================
+            Pipeline Failed
+            Service: ${SERVICE_NAME}
+            Stage: ${currentBuild.result}
+            ===========================================
+            """
+        }
+        always {
+            // 작업 완료 후 정리
+            cleanWs()
         }
     }
 }
