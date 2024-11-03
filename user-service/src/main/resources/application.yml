@@ -7,7 +7,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
+    url: ${DB_URL_USER}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -26,8 +26,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${GMAIL_SMTP}
-    password: ${GMAIL_PASSWORD}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -39,7 +39,7 @@ spring:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+    key: ${JWT_KEY}
 
 management:
   endpoints:
@@ -54,5 +54,5 @@ logging:
 
 kakao:
   client_id: ${KAKAO_CLIENT_ID}
-  redirect_uri: http://localhost:8083/api/v1/users/oauth/kakao/callback
+  redirect_uri: ${REDIRECT_URL}http://localhost:8083/api/v1/users/oauth/kakao/callback
 

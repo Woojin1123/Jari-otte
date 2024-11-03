@@ -11,7 +11,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
+    url: ${DB_URL_RESERVATION}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -25,7 +25,7 @@ spring:
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
     topic:
       payment-events: payment-events
       reservation-events: reservation-events
@@ -44,11 +44,11 @@ spring:
 
 payment:
   toss:
-    url: "https://api.tosspayments.com/v1/payments"
-    test_client_api_key: ${TEST_CLIENT_API_KEY}
-    test_secret_api_key: ${TEST_SECRET_API_KEY}
-    success_url: "http://localhost:8080/api/v1/payments/toss/success"
-    fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
+    url: ${PAYMENT_URL}
+    test_client_api_key: ${PAYMENT_CLIENT_KEY}
+    test_secret_api_key: ${PAYMENT_SECRET_KEY}
+    success_url: ${PAYMENT_SUCCESS_URL}
+    fail_url: ${PAYMENT_FAIL_URL}
 
 management:
   endpoints:

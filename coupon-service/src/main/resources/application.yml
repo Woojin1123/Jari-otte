@@ -7,7 +7,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
+    url: ${DB_URL_COUPON}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -36,7 +36,7 @@ spring:
         format_sql: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
     topic:
       coupon-events: coupon-events
     producer:
@@ -55,7 +55,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.eatpizzaquickly.couponservice.event"
+        spring.json.trusted.packages: ${PACKAGE}
         fetch.min.bytes: 1024
         fetch.max.wait.ms: 500
         max.partition.fetch.bytes: 1048576
