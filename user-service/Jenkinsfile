@@ -77,12 +77,14 @@ pipeline {
                     string(credentialsId: 'REDIRECT_URL', variable: 'REDIRECT_URL')
                 ]) {
                     script {
-                        // AWS 환경 변수 설정 및 ECR 로그인
-                        sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-                        '''
+                        // AWS 설정 및 ECR 로그인
+                        sh """
+                            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
+                            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+                            aws configure set default.region ${AWS_REGION}
+
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        """
 
                         // Docker 이미지 빌드 및 태그 설정
                         sh '''
