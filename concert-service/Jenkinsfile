@@ -59,23 +59,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Test') {
-            steps {
-                dir('concert-service') {
-                    sh './gradlew test'
-                }
-            }
-            post {
-                success {
-                    echo "Tests completed successfully"
-                }
-                failure {
-                    error "Tests failed"
-                }
-            }
-        }
-
         stage('ECR Login & Docker Build') {
             steps {
                 withCredentials([

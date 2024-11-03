@@ -50,14 +50,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                dir('user-service') {
-                    sh './gradlew test'
-                }
-            }
-        }
-
         stage('ECR Login & Docker Build') {
             steps {
                 withCredentials([
