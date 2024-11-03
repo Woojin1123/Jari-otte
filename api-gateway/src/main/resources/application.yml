@@ -3,8 +3,8 @@ spring:
     name: api-gateway
   data:
     redis:
-      host: 13.124.17.212
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   cloud:
     gateway:
@@ -48,7 +48,7 @@ spring:
 
 jwt:
   secret:
-    key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
+    key: ${JWT_KEY}
 
 server:
   port: 8080
