@@ -7,18 +7,6 @@ pipeline {
 
     environment {
         SERVICE_NAME = 'user-service'
-        ECR_REGISTRY = credentials('ECR_REGISTRY')
-        AWS_REGION = credentials('AWS_REGION')
-        DB_URL_USER = credentials('DB_URL_USER')
-        DB_USERNAME = credentials('DB_USERNAME')
-        DB_PASSWORD = credentials('DB_PASSWORD')
-        REDIS_HOST = credentials('REDIS_HOST')
-        REDIS_PORT = credentials('REDIS_PORT')
-        MAIL_USERNAME = credentials('MAIL_USERNAME')
-        MAIL_PASSWORD = credentials('MAIL_PASSWORD')
-        JWT_KEY = credentials('JWT_KEY')
-        KAKAO_CLIENT_ID = credentials('KAKAO_CLIENT_ID')
-        REDIRECT_URL = credentials('REDIRECT_URL')
         IMAGE_TAG = "user-service-${BUILD_NUMBER}"
     }
 
@@ -28,8 +16,6 @@ pipeline {
                 script {
                     // 변경된 파일 목록 가져오기
                     def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
-
-                    // user-service 디렉토리의 변경사항이 있는지 확인
                     def serviceChanged = changes.split('\n').any { it.startsWith('user-service/') }
 
                     if (!serviceChanged) {
@@ -62,14 +48,6 @@ pipeline {
                     '''
                 }
             }
-            post {
-                success {
-                    echo "Build stage completed successfully"
-                }
-                failure {
-                    error "Build stage failed"
-                }
-            }
         }
 
         stage('Test') {
@@ -78,53 +56,50 @@ pipeline {
                     sh './gradlew test'
                 }
             }
-            post {
-                success {
-                    echo "Tests completed successfully"
-                }
-                failure {
-                    error "Tests failed"
-                }
-            }
         }
 
         stage('ECR Login & Docker Build') {
             steps {
-                script {
-                    // AWS ECR 로그인
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_USER', variable: 'DB_URL_USER'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'MAIL_USERNAME', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'MAIL_PASSWORD', variable: 'MAIL_PASSWORD'),
+                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'KAKAO_CLIENT_ID', variable: 'KAKAO_CLIENT_ID'),
+                    string(credentialsId: 'REDIRECT_URL', variable: 'REDIRECT_URL')
+                ]) {
+                    script {
+                        // AWS 환경 변수 설정 및 ECR 로그인
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
 
-                    dir('user-service') {
-                        // Dockerfile 존재 확인
-                        if (!fileExists('Dockerfile')) {
-                            error 'Dockerfile not found'
-                        }
-
-                        // Docker 이미지 빌드
-                        docker.build("${ECR_REGISTRY}:${IMAGE_TAG}",
-                            "--build-arg DB_URL_USER=${DB_URL_USER} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg REDIS_HOST=${REDIS_HOST} " +
-                            "--build-arg REDIS_PORT=${REDIS_PORT} " +
-                            "--build-arg MAIL_USERNAME=${MAIL_USERNAME} " +
-                            "--build-arg MAIL_PASSWORD=${MAIL_PASSWORD} " +
-                            "--build-arg JWT_KEY=${JWT_KEY} " +
-                            "--build-arg KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID} " +
-                            "--build-arg REDIRECT_URL=${REDIRECT_URL} .")
-
-                        // latest 태그도 추가
-                        docker.build("${ECR_REGISTRY}:user-service-latest",
-                            "--build-arg DB_URL_USER=${DB_URL_USER} " +
-                            "--build-arg DB_USERNAME=${DB_USERNAME} " +
-                            "--build-arg DB_PASSWORD=${DB_PASSWORD} " +
-                            "--build-arg REDIS_HOST=${REDIS_HOST} " +
-                            "--build-arg REDIS_PORT=${REDIS_PORT} " +
-                            "--build-arg MAIL_USERNAME=${MAIL_USERNAME} " +
-                            "--build-arg MAIL_PASSWORD=${MAIL_PASSWORD} " +
-                            "--build-arg JWT_KEY=${JWT_KEY} " +
-                            "--build-arg KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID} " +
-                            "--build-arg REDIRECT_URL=${REDIRECT_URL} .")
+                        // Docker 이미지 빌드 및 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg DB_URL_USER=$DB_URL_USER \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg REDIS_HOST=$REDIS_HOST \
+                            --build-arg REDIS_PORT=$REDIS_PORT \
+                            --build-arg MAIL_USERNAME=$MAIL_USERNAME \
+                            --build-arg MAIL_PASSWORD=$MAIL_PASSWORD \
+                            --build-arg JWT_KEY=$JWT_KEY \
+                            --build-arg KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID \
+                            --build-arg REDIRECT_URL=$REDIRECT_URL \
+                            user-service/
+                        docker tag $ECR_REGISTRY:$IMAGE_TAG $ECR_REGISTRY:user-service-latest
+                        '''
                     }
                 }
             }
@@ -133,10 +108,9 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 script {
-                    // 버전 태그와 latest 태그 모두 푸시
                     sh """
-                        docker push ${ECR_REGISTRY}:${IMAGE_TAG}
-                        docker push ${ECR_REGISTRY}:user-service-latest
+                    docker push $ECR_REGISTRY:$IMAGE_TAG
+                    docker push $ECR_REGISTRY:user-service-latest
                     """
                 }
             }
@@ -144,22 +118,22 @@ pipeline {
 
         stage('Deploy to ECS') {
             steps {
-                script {
-                    sh """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                         aws ecs update-service \
                             --cluster jari-otte \
-                            --service ${SERVICE_NAME} \
+                            --service $SERVICE_NAME \
                             --force-new-deployment \
-                            --region ${AWS_REGION}
-                    """
-                }
-            }
-            post {
-                success {
-                    echo "Deployment to ECS completed successfully"
-                }
-                failure {
-                    error "Deployment to ECS failed"
+                            --region $AWS_REGION
+                        '''
+                    }
                 }
             }
         }
@@ -186,7 +160,6 @@ pipeline {
             """
         }
         always {
-            // 작업 완료 후 정리
             cleanWs()
         }
     }

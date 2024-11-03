@@ -1,0 +1,41 @@
+{
+    "family": "api-gateway",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "256",
+    "memory": "512",
+    "containerDefinitions": [
+        {
+            "name": "api-gateway",
+            "image": "183295417570.dkr.ecr.ap-northeast-2.amazonaws.com/jaiotte:api-gateway-latest",
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "REDIS_HOST",
+                    "value": "${REDIS_HOST}"
+                },
+                {
+                    "name": "REDIS_PORT",
+                    "value": "${REDIS_PORT}"
+                },
+                {
+                    "name": "JWT_KEY",
+                    "value": "${JWT_KEY}"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/api-gateway",
+                    "awslogs-region": "ap-northeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ]
+}
