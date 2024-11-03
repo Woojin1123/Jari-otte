@@ -7,9 +7,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://13.124.17.212/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     show-sql: true
@@ -21,13 +21,13 @@ spring:
         format_sql: false
   data:
     redis:
-      host: 13.124.17.212
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   mail:
     host: smtp.gmail.com
     port: 587
-    username: team.jariotte@gmail.com
-    password: gvmnniigwxirvwis
+    username: ${GMAIL_SMTP}
+    password: ${GMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -39,7 +39,7 @@ spring:
 
 jwt:
   secret:
-    key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
+    key: ${JWT_SECRET_KEY}
 
 management:
   endpoints:
@@ -53,6 +53,6 @@ logging:
   config: classpath:logback-user.xml
 
 kakao:
-  client_id: 8a8997adb373bd809a4e9631152c6d88
+  client_id: ${KAKAO_CLIENT_ID}
   redirect_uri: http://localhost:8083/api/v1/users/oauth/kakao/callback
 
