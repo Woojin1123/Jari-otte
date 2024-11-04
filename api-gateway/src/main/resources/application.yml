@@ -41,7 +41,8 @@ spring:
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
       discovery:
         locator:
-          enabled: false
+          enabled: true  # 서비스 디스커버리 활성화
+          lower-case-service-id: true  # 서비스 ID를 소문자로 처리
 
 jwt:
   secret:
