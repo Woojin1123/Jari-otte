@@ -54,5 +54,5 @@ logging:
 
 kakao:
   client_id: ${KAKAO_CLIENT_ID}
-  redirect_uri: ${REDIRECT_URL}http://localhost:8083/api/v1/users/oauth/kakao/callback
+  redirect_uri: ${REDIRECT_URL}
 

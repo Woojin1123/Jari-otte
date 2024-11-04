@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.userservice.entity;
 
-import jakarta.ws.rs.NotFoundException;
+
+import com.eatpizzaquickly.userservice.common.exception.NotFoundException;
 
 import java.util.Arrays;
 
