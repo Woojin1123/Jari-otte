@@ -29,7 +29,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate          # Hibernate가 스키마를 검증만 하고 변경하지 않도록 설정
+      ddl-auto: update          # Hibernate가 스키마를 검증만 하고 변경하지 않도록 설정
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
