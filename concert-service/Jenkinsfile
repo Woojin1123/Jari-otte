@@ -9,7 +9,44 @@ pipeline {
         SERVICE_NAME = 'concert-service'
         IMAGE_TAG = "concert-service-latest" // latest 태그만 사용
     }
+
     stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_CONCERT', variable: 'DB_URL_CONCERT'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "DB_URL_CONCERT: ${DB_URL_CONCERT}"
+                        echo "REDIS_HOST: ${REDIS_HOST}"
+                        echo "REDIS_PORT: ${REDIS_PORT}"
+
+                        // Check essential variables
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
+
+                        if (!DB_URL_CONCERT || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT) {
+                            error("Database or Redis configuration is missing.")
+                        }
+
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
+            }
+        }
+
         stage('Check Changes') {
             steps {
                 script {
