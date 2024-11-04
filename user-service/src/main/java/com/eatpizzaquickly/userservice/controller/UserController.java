@@ -4,7 +4,6 @@ package com.eatpizzaquickly.userservice.controller;
 import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
-import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.service.EmailService;
 import com.eatpizzaquickly.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -81,6 +80,7 @@ public class UserController {
                         "조회 성공", userService.findById(userId)
                 ));
     }
+
 
     @GetMapping
     public List<UserResponseDto> getAllUsers() {
