@@ -9,7 +9,6 @@ pipeline {
         SERVICE_NAME = 'user-service'
         IMAGE_TAG = "user-service-latest" // latest 태그만 사용
     }
-
     stages {
         stage('Check Changes') {
             steps {
