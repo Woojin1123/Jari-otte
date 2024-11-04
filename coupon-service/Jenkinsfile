@@ -33,14 +33,13 @@ pipeline {
                         echo "REDIS_HOST: ${REDIS_HOST}"
                         echo "REDIS_PORT: ${REDIS_PORT}"
 
-
                         // Check essential variables
                         if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
                             error("Essential AWS credentials or registry information is missing.")
                         }
 
-                        if (!DB_URL_COUPON || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT || !KAFKA_SERVER) {
-                            error("Database, Redis, or Kafka configuration is missing.")
+                        if (!DB_URL_COUPON || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT) {
+                            error("Database or Redis configuration is missing.")
                         }
 
                         echo "Configuration values successfully loaded and verified."
@@ -54,8 +53,6 @@ pipeline {
                 script {
                     // 변경된 파일 목록 가져오기
                     def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
-
-                    // coupon-service 디렉토리의 변경사항이 있는지 확인
                     def serviceChanged = changes.split('\n').any { it.startsWith('coupon-service/') }
 
                     if (!serviceChanged) {
@@ -206,7 +203,6 @@ pipeline {
             """
         }
         always {
-            // 작업 완료 후 정리
             cleanWs()
         }
     }
