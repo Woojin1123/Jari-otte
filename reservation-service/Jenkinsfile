@@ -9,7 +9,48 @@ pipeline {
         SERVICE_NAME = 'reservation-service'
         IMAGE_TAG = "reservation-service-latest" // latest 태그만 사용
     }
+
     stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_RESERVATION', variable: 'DB_URL_RESERVATION'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+                    string(credentialsId: 'PAYMENT_URL', variable: 'PAYMENT_URL'),
+                    string(credentialsId: 'PAYMENT_CLIENT_KEY', variable: 'PAYMENT_CLIENT_KEY'),
+                    string(credentialsId: 'PAYMENT_SECRET_KEY', variable: 'PAYMENT_SECRET_KEY'),
+                    string(credentialsId: 'PAYMENT_SUCCESS_URL', variable: 'PAYMENT_SUCCESS_URL'),
+                    string(credentialsId: 'PAYMENT_FAIL_URL', variable: 'PAYMENT_FAIL_URL')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "DB_URL_RESERVATION: ${DB_URL_RESERVATION}"
+                        echo "KAFKA_SERVER: ${KAFKA_SERVER}"
+                        echo "PAYMENT_URL: ${PAYMENT_URL}"
+
+                        // Check essential variables
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
+
+                        if (!DB_URL_RESERVATION || !DB_USERNAME || !DB_PASSWORD || !KAFKA_SERVER || !PAYMENT_URL || !PAYMENT_CLIENT_KEY || !PAYMENT_SECRET_KEY) {
+                            error("Database, Kafka, or payment configuration is missing.")
+                        }
+
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
+            }
+        }
+
         stage('Check Changes') {
             steps {
                 script {

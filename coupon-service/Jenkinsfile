@@ -9,7 +9,47 @@ pipeline {
         SERVICE_NAME = 'coupon-service'
         IMAGE_TAG = "coupon-service-latest" // latest 태그만 사용
     }
+
     stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_COUPON', variable: 'DB_URL_COUPON'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+                    string(credentialsId: 'PACKAGE', variable: 'PACKAGE')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "DB_URL_COUPON: ${DB_URL_COUPON}"
+                        echo "REDIS_HOST: ${REDIS_HOST}"
+                        echo "REDIS_PORT: ${REDIS_PORT}"
+                        echo "KAFKA_SERVER: ${KAFKA_SERVER}"
+
+                        // Check essential variables
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
+
+                        if (!DB_URL_COUPON || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT || !KAFKA_SERVER) {
+                            error("Database, Redis, or Kafka configuration is missing.")
+                        }
+
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
+            }
+        }
+
         stage('Check Changes') {
             steps {
                 script {

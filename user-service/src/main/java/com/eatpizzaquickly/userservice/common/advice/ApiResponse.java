@@ -1,7 +1,7 @@
 package com.eatpizzaquickly.userservice.common.advice;
 
 import lombok.Getter;
-
+//공통적으로
 @Getter
 public class ApiResponse<T>{
     private String status;
