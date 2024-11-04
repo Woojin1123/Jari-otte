@@ -5,26 +5,25 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-
   cloud:
     gateway:
       routes:
         - id: user-service
-          uri: http://user-service.jariotte.local:8083
+          uri: http://user-service.jariotte.local
           predicates:
             - Path=/api/v1/users/**
           filters:
             - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/${segment}
 
         - id: coupon-service
-          uri: http://coupon-service.jariotte.local:8084
+          uri: http://coupon-service.jariotte.local
           predicates:
             - Path=/api/v1/coupons/**
           filters:
             - RewritePath=/api/v1/coupons/(?<segment>.*), /api/v1/coupons/${segment}
 
         - id: reservation-service
-          uri: http://reservation-service.jariotte.local:8082
+          uri: http://reservation-service.jariotte.local
           predicates:
             - Path=/api/v1/payments/**, /api/v1/reservations/**, /api/v1/reviews/**
           filters:
@@ -33,16 +32,13 @@ spring:
             - RewritePath=/api/v1/reviews/(?<segment>.*), /api/v1/reviews/${segment}
 
         - id: concert-service
-          uri: http://concert-service.jariotte.local:8081
+          uri: http://concert-service.jariotte.local
           predicates:
             - Path=/api/v1/seats/**, /api/v1/venues/**, /api/v1/concerts/**
           filters:
             - RewritePath=/api/v1/seats/(?<segment>.*), /api/v1/seats/${segment}
             - RewritePath=/api/v1/venues/(?<segment>.*), /api/v1/venues/${segment}
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
-      discovery:
-        locator:
-          enabled: false
 
 jwt:
   secret:
