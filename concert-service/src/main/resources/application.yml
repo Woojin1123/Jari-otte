@@ -7,9 +7,12 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL_CONCERT}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+#    url: ${DB_URL_CONCERT}
+    url: jdbc:mysql://localhost:3306/concertservice
+#    username: ${DB_USERNAME}
+    username: root
+#    password: ${DB_PASSWORD}
+    password: root
 
   jpa:
     show-sql: true
@@ -21,14 +24,21 @@ spring:
         format_sql: false
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+#      host: ${REDIS_HOST}
+#      port: ${REDIS_PORT}
+      host: localhost
+      port: 6379
 
 management:
   endpoints:
     web:
       exposure:
         include: health, info, prometheus
+feign:
+  client:
+    config:
+      default:
+        loadbalancer: true
 
 logging:
   level:
