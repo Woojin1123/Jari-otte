@@ -10,12 +10,14 @@ import com.eatpizzaquickly.couponservice.kafka.CouponEvent;
 import com.eatpizzaquickly.couponservice.kafka.CouponEventProducer;
 import com.eatpizzaquickly.couponservice.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/coupons")
 @RequiredArgsConstructor
@@ -44,6 +46,7 @@ public class CouponController {
                 .build();
 
         eventProducer.sendCouponEvent(event);
+        log.info(event.toString());
 
         return ResponseEntity.ok(ApiResponse.success("전체 사용자에게 쿠폰 발급이 요청되었습니다. 잠시 후 발급이 완료됩니다."));
     }

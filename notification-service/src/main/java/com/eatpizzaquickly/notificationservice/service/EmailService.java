@@ -3,12 +3,14 @@ package com.eatpizzaquickly.notificationservice.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
     private final JavaMailSender mailSender;
 
@@ -19,6 +21,7 @@ public class EmailService {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
+        log.info("Sending email to " + to);
         mailSender.send(message);
     }
 }

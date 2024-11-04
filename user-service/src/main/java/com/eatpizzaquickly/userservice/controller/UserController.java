@@ -29,6 +29,7 @@ public class UserController {
             @RequestParam(name = "token") String token
     ) {
         UserResponseDto user = userService.signUp(userRequestDto,token);
+        log.info("Sign up successful:{}", user);
         return ResponseEntity.ok(ApiResponse.success("회원가입 성공", user));
     }
 

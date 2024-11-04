@@ -5,9 +5,11 @@ import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationReq
 import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
 import com.eatpizzaquickly.reservationservice.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping ("/api/v1/reservations")
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class ReservationController {
             @RequestBody PostReservationRequest request
     ) {
         PostReservationResponse response = reservationService.createReservation(request);
+        log.info("Created reservation: {}", response);
         return response;
     }
 

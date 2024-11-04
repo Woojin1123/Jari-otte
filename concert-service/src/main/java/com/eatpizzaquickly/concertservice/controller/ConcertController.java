@@ -9,6 +9,7 @@ import com.eatpizzaquickly.concertservice.dto.response.ConcertListResponse;
 import com.eatpizzaquickly.concertservice.dto.response.PopularConcertResponse;
 import com.eatpizzaquickly.concertservice.service.ConcertService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/concerts")
 @RestController
@@ -28,6 +30,7 @@ public class ConcertController {
     @PostMapping
     public ResponseEntity<ApiResponse<ConcertDetailResponse>> createConcert(@RequestBody ConcertCreateRequest concertCreateRequest) {
         ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest);
+        log.info("concert:{}", concertDetailResponse);
         return ResponseEntity.ok(ApiResponse.success("공연 생성 성공", concertDetailResponse));
     }
 

@@ -58,7 +58,7 @@ public class JwtFilter implements WebFilter {
 
             Long userId = claims.get("userId", Long.class);
             String userRole = claims.get("userRole", String.class);
-            log.info("user ID: {}, Role: {}", userId, userRole);
+            log.info("user ID: {}, UserRole: {}", userId, userRole);
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     CustomUserDetails.builder()
