@@ -4,16 +4,17 @@ package com.eatpizzaquickly.userservice.controller;
 import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
-import com.eatpizzaquickly.userservice.entity.User;
 import com.eatpizzaquickly.userservice.service.EmailService;
 import com.eatpizzaquickly.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -34,6 +35,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@RequestBody UserRequestDto userRequestDto) {
         String accessToken = userService.login(userRequestDto);
+        log.info("로그인 성공");
         return ResponseEntity.ok()
                 .header("Authorization", "Bearer " + accessToken)  // 헤더에 액세스 토큰 추가
                 .body(ApiResponse.success("로그인 성공", accessToken));
@@ -95,6 +97,4 @@ public class UserController {
         emailService.sendMail(email);
         return ResponseEntity.ok(ApiResponse.success("인증번호가 메일로 발송되었습니다."));
     }
-
-    //카카오 로그인
 }
