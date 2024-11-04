@@ -8,27 +8,23 @@ spring:
 
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: http://user-service.jariotte.local
           predicates:
             - Path=/api/v1/users/**
           filters:
             - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/${segment}
 
         - id: coupon-service
-          uri: lb://coupon-service
+          uri: http://coupon-service.jariotte.local
           predicates:
             - Path=/api/v1/coupons/**
           filters:
             - RewritePath=/api/v1/coupons/(?<segment>.*), /api/v1/coupons/${segment}
 
         - id: reservation-service
-          uri: lb://reservation-service
+          uri: http://reservation-service.jariotte.local
           predicates:
             - Path=/api/v1/payments/**, /api/v1/reservations/**, /api/v1/reviews/**
           filters:
@@ -37,14 +33,16 @@ spring:
             - RewritePath=/api/v1/reviews/(?<segment>.*), /api/v1/reviews/${segment}
 
         - id: concert-service
-          uri: lb://concert-service
+          uri: http://concert-service.jariotte.local
           predicates:
             - Path=/api/v1/seats/**, /api/v1/venues/**, /api/v1/concerts/**
           filters:
             - RewritePath=/api/v1/seats/(?<segment>.*), /api/v1/seats/${segment}
             - RewritePath=/api/v1/venues/(?<segment>.*), /api/v1/venues/${segment}
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
-
+      discovery:
+        locator:
+          enabled: false
 
 jwt:
   secret:
