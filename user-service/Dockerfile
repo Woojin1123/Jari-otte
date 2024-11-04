@@ -27,6 +27,6 @@ WORKDIR /app
 
 COPY build/libs/user-service-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 8083
+EXPOSE 80
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
