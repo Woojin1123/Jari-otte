@@ -24,7 +24,7 @@ public class ConcertController {
 
     private final ConcertService concertService;
 
-    // 관리자 권한 필요
+
     @PostMapping
     public ResponseEntity<ApiResponse<ConcertDetailResponse>> createConcert(@RequestBody ConcertCreateRequest concertCreateRequest) {
         ConcertDetailResponse concertDetailResponse = concertService.saveConcert(concertCreateRequest);
