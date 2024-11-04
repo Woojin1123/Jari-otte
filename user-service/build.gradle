@@ -54,9 +54,6 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // Spring Cloud Eureka 클라이언트 (MSA 서비스 등록 및 검색)
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-
     //prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

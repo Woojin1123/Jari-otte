@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         SERVICE_NAME = 'user-service'
-        IMAGE_TAG = "user-service-${BUILD_NUMBER}"
+        IMAGE_TAG = "user-service-latest" // latest 태그만 사용
     }
 
     stages {
@@ -78,7 +78,7 @@ pipeline {
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
                         '''
 
-                        // Docker 이미지 빌드 및 태그 설정
+                        // Docker 이미지 빌드 및 latest 태그 설정
                         sh '''
                         docker build -t $ECR_REGISTRY:$IMAGE_TAG \
                             --build-arg DB_URL_USER=$DB_URL_USER \
@@ -92,7 +92,6 @@ pipeline {
                             --build-arg KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID \
                             --build-arg REDIRECT_URL=$REDIRECT_URL \
                             user-service/
-                        docker tag $ECR_REGISTRY:$IMAGE_TAG $ECR_REGISTRY:user-service-latest
                         '''
                     }
                 }
@@ -114,7 +113,6 @@ pipeline {
                         export AWS_DEFAULT_REGION=$AWS_REGION
 
                         docker push $ECR_REGISTRY:$IMAGE_TAG
-                        docker push $ECR_REGISTRY:user-service-latest
                         '''
                     }
                 }
@@ -153,7 +151,6 @@ pipeline {
             Pipeline Successfully Completed
             Service: ${SERVICE_NAME}
             Image: ${ECR_REGISTRY}:${IMAGE_TAG}
-            Latest Image: ${ECR_REGISTRY}:user-service-latest
             ===========================================
             """
         }
