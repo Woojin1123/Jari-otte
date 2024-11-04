@@ -32,5 +32,5 @@ notification:
       coupon: coupon-events
 
 server:
-  port: 8086
+  port: 8080
 
