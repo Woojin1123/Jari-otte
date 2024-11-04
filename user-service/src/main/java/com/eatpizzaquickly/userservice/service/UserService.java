@@ -56,6 +56,7 @@ public class UserService {
 
     @Transactional
     public String login(UserRequestDto userRequestDto) {
+        log.info("로그인 시도");
         User user = userRepository.findByEmail(userRequestDto.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없습니다."));
 
