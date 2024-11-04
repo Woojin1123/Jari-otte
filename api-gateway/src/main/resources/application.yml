@@ -9,7 +9,7 @@ spring:
     gateway:
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: http://user-service.jariotte.local:8080
           predicates:
             - Path=/api/v1/users/**
           filters:
