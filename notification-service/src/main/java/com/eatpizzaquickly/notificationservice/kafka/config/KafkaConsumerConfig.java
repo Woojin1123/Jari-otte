@@ -20,7 +20,7 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // PaymentEvent Consumer 설정
+
     @Bean
     public ConsumerFactory<String, String> ConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
