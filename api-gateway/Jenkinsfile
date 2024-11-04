@@ -9,7 +9,6 @@ pipeline {
         SERVICE_NAME = 'api-gateway'
         IMAGE_TAG = "api-gateway-latest" // latest 태그만 사용
     }
-
     stages {
         stage('Check Changes') {
             steps {
