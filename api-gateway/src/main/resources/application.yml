@@ -16,14 +16,14 @@ spring:
             - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/${segment}
 
         - id: coupon-service
-          uri: http://coupon-service.jariotte.local:8084
+          uri: http://coupon-service.jariotte.local
           predicates:
             - Path=/api/v1/coupons/**
           filters:
             - RewritePath=/api/v1/coupons/(?<segment>.*), /api/v1/coupons/${segment}
 
         - id: reservation-service
-          uri: http://reservation-service.jariotte.local:8082
+          uri: http://reservation-service.jariotte.local
           predicates:
             - Path=/api/v1/payments/**, /api/v1/reservations/**, /api/v1/reviews/**
           filters:
@@ -32,7 +32,7 @@ spring:
             - RewritePath=/api/v1/reviews/(?<segment>.*), /api/v1/reviews/${segment}
 
         - id: concert-service
-          uri: http://concert-service.jariotte.local:8081
+          uri: http://concert-service.jariotte.local
           predicates:
             - Path=/api/v1/seats/**, /api/v1/venues/**, /api/v1/concerts/**
           filters:
@@ -41,7 +41,9 @@ spring:
             - RewritePath=/api/v1/concerts/(?<segment>.*), /api/v1/concerts/${segment}
       discovery:
         locator:
-          enabled: false
+          enabled: true
+          lower-case-service-id: true
+
 
 jwt:
   secret:
