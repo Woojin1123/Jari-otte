@@ -16,6 +16,8 @@
 
 [8. 성능 개선](#-성능-개선)
 
+## 프로젝트 소개
+Jari-Otte는 티켓 예매 플랫폼입니다.
 
 ## 팀원
 <div align=center> 
@@ -25,10 +27,8 @@
 # 와이어 프레임
 ![image](https://github.com/user-attachments/assets/bb76cd95-b906-4bed-a0f4-b80de55b663c)
 
-
-# 💡 API
-
-https://learned-wren-4a8.notion.site/13542b6edb8980fe9d5fef312ca7c6dc?v=13542b6edb89817e9dba000c6d19b0de&pvs=4
+## 💡 API
+[API 문서 보기](https://learned-wren-4a8.notion.site/13542b6edb8980fe9d5fef312ca7c6dc?v=13542b6edb89817e9dba000c6d19b0de&pvs=4)
 
 # ⚙ 기술 스택
 
@@ -62,7 +62,8 @@ https://learned-wren-4a8.notion.site/13542b6edb8980fe9d5fef312ca7c6dc?v=13542b6e
 # 🏗 인프라 구성도
 ![image (5)](https://github.com/user-attachments/assets/da3f041a-a408-4be9-9aff-3b196906de57)
 
-# 👩‍💻 트러블 슈팅 & 기술 선택
-https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4
-# 📉 성능 개선
-https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4
+## 👩‍💻 트러블 슈팅 & 기술 선택
+[트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
+
+## 📉 성능 개선
+[성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
