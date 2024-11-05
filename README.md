@@ -1,4 +1,22 @@
 # Jari-Otte 티켓 예매 플랫폼
+## 목차
+[1. 프로젝트 소개](#-프로젝트-소개)
+
+[2. 팀원](#-팀원)
+
+[3. 와이어 프레임](#-와이어-프레임)
+
+[4. API](#-api)
+
+[5. 기술스택](#-기술-스택)
+
+[6. 인프라 구성도](#6-인프라-구성도)
+
+
+## 팀원
+<div align=center> 
+<img src="https://github.com/user-attachments/assets/fc09bfec-299e-48ec-8a26-65dd89abdbfd">
+</div>
 
 # 와이어 프레임
 ![image](https://github.com/user-attachments/assets/bb76cd95-b906-4bed-a0f4-b80de55b663c)
@@ -38,5 +56,3 @@
 # 🏗 인프라 구성도
 ![image (5)](https://github.com/user-attachments/assets/da3f041a-a408-4be9-9aff-3b196906de57)
 
-# 📋 팀노션
-https://www.notion.so/teamsparta/Eating-Pizza-quickly-1232dc3ef51480159879c8cfb81f4b7e
