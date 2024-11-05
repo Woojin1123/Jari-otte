@@ -28,6 +28,8 @@
 
 # 💡 API
 
+https://learned-wren-4a8.notion.site/13542b6edb8980fe9d5fef312ca7c6dc?v=13542b6edb89817e9dba000c6d19b0de&pvs=4
+
 # ⚙ 기술 스택
 
 <div align=center> 
