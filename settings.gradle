@@ -1,0 +1,4 @@
+rootProject.name = 'jari-otte'
+include 'user-service'
+include 'datasource-common'
+

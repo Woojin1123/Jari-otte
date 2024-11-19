@@ -4,13 +4,17 @@ server:
 spring:
   application:
     name: user-service
-
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/userservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root
-
+    write:
+      url: jdbc:mysql://13.124.17.212:3306/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    read:
+      url: jdbc:mysql://13.124.17.212:3307/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:

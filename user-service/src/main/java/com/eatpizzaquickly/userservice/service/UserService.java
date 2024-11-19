@@ -137,6 +137,7 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> findAll() {
         List<User> users = userRepository.findAll();
 
