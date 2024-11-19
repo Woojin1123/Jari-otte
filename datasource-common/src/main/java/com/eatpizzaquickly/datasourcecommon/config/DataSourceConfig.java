@@ -27,7 +27,6 @@ import java.util.Properties;
 public class DataSourceConfig {
 
     @Bean(name = "writeDataSource")
-    @Primary
     @ConfigurationProperties(prefix = "spring.datasource.write")
     public DataSource writeDataSource() {
         return DataSourceBuilder.create().build();
@@ -60,15 +59,14 @@ public class DataSourceConfig {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
 
         entityManagerFactoryBean.setPersistenceProvider(new HibernatePersistenceProvider());
-        entityManagerFactoryBean.setPackagesToScan("com.eatpizzaquickly.**.**.entity");
+        entityManagerFactoryBean.setPackagesToScan("com.eatpizzaquickly.userservice.entity");
         entityManagerFactoryBean.setDataSource(new LazyConnectionDataSourceProxy(routingDataSource()));
         entityManagerFactoryBean.setJpaProperties(hibernateProperties());
         entityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
-        entityManagerFactoryBean.afterPropertiesSet();
 
         return entityManagerFactoryBean;
     }
-    @Primary
+
     @Bean(name = "transactionManager")
     public PlatformTransactionManager transactionManager(
             @Qualifier("entityManagerFactory") EntityManagerFactory entityManagerFactory) {
@@ -97,12 +95,13 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public JPAQueryFactory jpaQueryFactory(@Qualifier("entityManagerFactory") EntityManager chanmulEntityManager) {
-        return new JPAQueryFactory(chanmulEntityManager);
+    public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+        return new JPAQueryFactory(entityManager);
     }
+
     @Bean
-    public JdbcTemplate jdbcTemplate() {
-        return new JdbcTemplate(new LazyConnectionDataSourceProxy(readDataSource()));
+    public JdbcTemplate jdbcTemplate(DataSource routingDatasource) {
+        return new JdbcTemplate(new LazyConnectionDataSourceProxy(routingDatasource));
     }
 }
 
