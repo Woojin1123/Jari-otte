@@ -1,0 +1,205 @@
+pipeline {
+   agent any
+
+   triggers {
+       githubPush()
+   }
+
+   environment {
+       SERVICE_NAME = 'coupon-service'
+       IMAGE_TAG = "coupon-service-latest" // latest 태그만 사용
+   }
+
+   stages {
+       stage('Prepare Config') {
+           steps {
+               withCredentials([
+                   string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                   string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                   string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                   string(credentialsId: 'DB_URL_COUPON', variable: 'DB_URL_COUPON'),
+                   string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                   string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                   string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                   string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+               ]) {
+                   script {
+                       echo "Preparing configuration values..."
+                       echo "AWS_REGION: ${AWS_REGION}"
+                       echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                       echo "DB_URL_COUPON: ${DB_URL_COUPON}"
+                       echo "REDIS_HOST: ${REDIS_HOST}"
+                       echo "REDIS_PORT: ${REDIS_PORT}"
+
+                       // Check essential variables
+                       if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                           error("Essential AWS credentials or registry information is missing.")
+                       }
+
+                       if (!DB_URL_COUPON || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT) {
+                           error("Database or Redis configuration is missing.")
+                       }
+
+                       echo "Configuration values successfully loaded and verified."
+                   }
+               }
+           }
+       }
+
+       stage('Check Changes') {
+           steps {
+               script {
+                   // 변경된 파일 목록 가져오기
+                   def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
+                   def serviceChanged = changes.split('\n').any { it.startsWith('coupon-service/') }
+
+                   if (!serviceChanged) {
+                       currentBuild.result = 'NOT_BUILT'
+                       error('No changes in coupon-service directory, skipping build')
+                   }
+                   echo "Changes detected in coupon-service directory. Proceeding with build..."
+               }
+           }
+       }
+
+       stage('Checkout') {
+           steps {
+               git branch: 'release/v2',
+                   url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
+
+               script {
+                   def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                   echo "Building commit: ${gitCommit}"
+               }
+           }
+       }
+
+       stage('Build') {
+           steps {
+               dir('coupon-service') {
+                   sh '''
+                       chmod +x gradlew
+                       ./gradlew clean build -x test
+                   '''
+               }
+           }
+           post {
+               success {
+                   echo "Build stage completed successfully"
+               }
+               failure {
+                   error "Build stage failed"
+               }
+           }
+       }
+
+       stage('ECR Login & Docker Build') {
+           steps {
+               withCredentials([
+                   string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                   string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                   string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                   string(credentialsId: 'DB_URL_COUPON', variable: 'DB_URL_COUPON'),
+                   string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                   string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                   string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                   string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                   string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+               ]) {
+                   script {
+                       // AWS 환경 변수 설정 및 ECR 로그인
+                       sh '''
+                       export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                       export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                       export AWS_DEFAULT_REGION=$AWS_REGION
+
+                       aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                       echo "Using KAFKA_SERVER: $KAFKA_SERVER"
+
+                       docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                           --build-arg DB_URL_COUPON="$DB_URL_COUPON" \
+                           --build-arg DB_USERNAME="$DB_USERNAME" \
+                           --build-arg DB_PASSWORD="$DB_PASSWORD" \
+                           --build-arg REDIS_HOST="$REDIS_HOST" \
+                           --build-arg REDIS_PORT="$REDIS_PORT" \
+                           --build-arg KAFKA_SERVER="$KAFKA_SERVER" \
+                           coupon-service/
+                       '''
+                   }
+               }
+           }
+       }
+
+       stage('Push to ECR') {
+           steps {
+               withCredentials([
+                   string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                   string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                   string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+               ]) {
+                   script {
+                       sh '''
+                       export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                       export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                       export AWS_DEFAULT_REGION=$AWS_REGION
+
+                       docker push $ECR_REGISTRY:$IMAGE_TAG
+                       '''
+                   }
+               }
+           }
+       }
+
+       stage('Deploy to ECS') {
+           steps {
+               withCredentials([
+                   string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                   string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+               ]) {
+                   script {
+                       sh '''
+                       export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                       export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                       export AWS_DEFAULT_REGION=$AWS_REGION
+
+                       aws ecs update-service \
+                           --cluster Jari-otte \
+                           --service $SERVICE_NAME \
+                           --force-new-deployment \
+                           --region $AWS_REGION
+                       '''
+                   }
+               }
+           }
+       }
+   }
+
+   post {
+       success {
+           echo """
+           ===========================================
+           Pipeline Successfully Completed
+           Service: ${SERVICE_NAME}
+           Image: ${ECR_REGISTRY}:${IMAGE_TAG}
+           ===========================================
+           """
+       }
+       failure {
+           echo """
+           ===========================================
+           Pipeline Failed
+           Service: ${SERVICE_NAME}
+           Stage: ${currentBuild.result}
+           ===========================================
+           """
+       }
+       always {
+           cleanWs()
+       }
+   }
+}

@@ -1,0 +1,212 @@
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        SERVICE_NAME = 'notification-service'
+        IMAGE_TAG = "notification-service-latest" // latest 태그만 사용
+    }
+
+    stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'DB_URL_NOTIFICATION', variable: 'DB_URL_NOTIFICATION'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+                    string(credentialsId: 'MAIL_USERNAME', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'MAIL_PASSWORD', variable: 'MAIL_PASSWORD')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "KAFKA_SERVER: ${KAFKA_SERVER}"
+                        echo "MAIL_USERNAME: ${MAIL_USERNAME}"
+
+                        // Check essential variables
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
+
+                        if (!KAFKA_SERVER || !MAIL_USERNAME || !MAIL_PASSWORD) {
+                            error("Kafka or email configuration is missing.")
+                        }
+
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
+            }
+        }
+
+        stage('Check Changes') {
+            steps {
+                script {
+                    // 변경된 파일 목록 가져오기
+                    def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
+
+                    // notification-service 디렉토리의 변경사항이 있는지 확인
+                    def serviceChanged = changes.split('\n').any { it.startsWith('notification-service/') }
+
+                    if (!serviceChanged) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error('No changes in notification-service directory, skipping build')
+                    }
+                    echo "Changes detected in notification-service directory. Proceeding with build..."
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'release/v2',
+                    url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
+
+                script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    echo "Building commit: ${gitCommit}"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('notification-service') {
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build -x test
+                    '''
+                }
+            }
+            post {
+                success {
+                    echo "Build stage completed successfully"
+                }
+                failure {
+                    error "Build stage failed"
+                }
+            }
+        }
+
+        stage('ECR Login & Docker Build') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'DB_URL_NOTIFICATION', variable: 'DB_URL_NOTIFICATION'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'KAFKA_SERVER', variable: 'KAFKA_SERVER'),
+                    string(credentialsId: 'MAIL_USERNAME', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'MAIL_PASSWORD', variable: 'MAIL_PASSWORD')
+                ]) {
+                    script {
+                        // AWS 환경 변수 설정 및 ECR 로그인
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
+
+                        // Docker 이미지 빌드 및 latest 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg KAFKA_SERVER=$KAFKA_SERVER \
+                            --build-arg MAIL_USERNAME=$MAIL_USERNAME \
+                            --build-arg MAIL_PASSWORD=$MAIL_PASSWORD \
+                            --build-arg DB_URL_NOTIFICATION=$DB_URL_NOTIFICATION \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            notification-service/
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'DB_URL_NOTIFICATION', variable: 'DB_URL_NOTIFICATION'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to ECS') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        aws ecs update-service \
+                            --cluster Jari-otte \
+                            --service $SERVICE_NAME \
+                            --force-new-deployment \
+                            --region $AWS_REGION
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo """
+            ===========================================
+            Pipeline Successfully Completed
+            Service: ${SERVICE_NAME}
+            Image: ${ECR_REGISTRY}:${IMAGE_TAG}
+            ===========================================
+            """
+        }
+        failure {
+            echo """
+            ===========================================
+            Pipeline Failed
+            Service: ${SERVICE_NAME}
+            Stage: ${currentBuild.result}
+            ===========================================
+            """
+        }
+        always {
+            // 작업 완료 후 정리
+            cleanWs()
+        }
+    }
+}
