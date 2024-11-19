@@ -3,12 +3,16 @@ package com.eatpizzaquickly.reservationservice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 @SpringBootApplication
 @EnableFeignClients
 @EnableJpaAuditing
+@ComponentScan(basePackages = {
+        "com.eatpizzaquickly.reservationservice",
+        "com.eatpizzaquickly.datasourcecommon"
+})
 public class ReservationServiceApplication {
 
     public static void main(String[] args) {

@@ -2,11 +2,9 @@ package com.eatpizzaquickly.concertservice.service;
 
 import com.eatpizzaquickly.concertservice.client.KafkaEventProducer;
 import com.eatpizzaquickly.concertservice.client.ReservationCompensationEvent;
-import com.eatpizzaquickly.concertservice.client.ReservationCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.SeatDto;
 import com.eatpizzaquickly.concertservice.dto.SeatReservationEvent;
 import com.eatpizzaquickly.concertservice.dto.request.SeatReservationRequest;
-import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.SeatListResponse;
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.entity.Seat;

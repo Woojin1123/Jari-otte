@@ -1,8 +1,8 @@
 package com.eatpizzaquickly.concertservice.controller;
 
+
 import com.eatpizzaquickly.concertservice.dto.response.ApiResponse;
 import com.eatpizzaquickly.concertservice.dto.response.QueueResponse;
-import com.eatpizzaquickly.concertservice.repository.ConcertRedisRepository;
 import com.eatpizzaquickly.concertservice.service.QueueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

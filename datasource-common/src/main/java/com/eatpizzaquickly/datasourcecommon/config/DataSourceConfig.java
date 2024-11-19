@@ -27,13 +27,13 @@ import java.util.Properties;
 public class DataSourceConfig {
 
     @Bean(name = "writeDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.write")
+    @ConfigurationProperties(prefix = "spring.datasource.master")
     public DataSource writeDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean(name = "readDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.read")
+    @ConfigurationProperties(prefix = "spring.datasource.slave")
     public DataSource readDataSource() {
         return DataSourceBuilder.create().build();
     }
@@ -59,7 +59,14 @@ public class DataSourceConfig {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
 
         entityManagerFactoryBean.setPersistenceProvider(new HibernatePersistenceProvider());
-        entityManagerFactoryBean.setPackagesToScan("com.eatpizzaquickly.userservice.entity");
+        entityManagerFactoryBean.setPackagesToScan(
+                "com.eatpizzaquickly.userservice.entity",
+                "com.eatpizzaquickly.concertservice.entity",
+                "com.eatpizzaquickly.reservationservice.reservation.entity",
+                "com.eatpizzaquickly.reservationservice.payment.entity",
+                "com.eatpizzaquickly.reservationservice.review.entity",
+                "com.eatpizzaquickly.couponservice.entity"
+                );
         entityManagerFactoryBean.setDataSource(new LazyConnectionDataSourceProxy(routingDataSource()));
         entityManagerFactoryBean.setJpaProperties(hibernateProperties());
         entityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
