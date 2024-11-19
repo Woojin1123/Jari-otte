@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
+@Table(name = "concert")
 public class Concert {
 
     @Column(name = "concert_id")

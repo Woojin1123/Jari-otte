@@ -4,19 +4,34 @@ server:
 spring:
   application:
     name: user-service
+
   datasource:
-    write:
-      url: jdbc:mysql://13.124.17.212:3306/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    master:
+      jdbc-url: jdbc:mysql://13.124.17.212:3306/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       username: root
       password: root
       driver-class-name: com.mysql.cj.jdbc.Driver
-    read:
-      url: jdbc:mysql://13.124.17.212:3307/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+        idle-timeout: 300000  # 5분
+        connection-timeout: 20000  # 20초
+        pool-name: MasterHikariPool
+
+    slave:
+      jdbc-url: jdbc:mysql://13.124.17.212:3307/user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       username: root
       password: root
       driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 10
+        idle-timeout: 300000
+        connection-timeout: 20000
+        pool-name: SlaveHikariPool
+
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
