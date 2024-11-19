@@ -4,16 +4,34 @@ server:
 spring:
   application:
     name: reservation-service
-
   # Bean 오버라이딩 허용 설정 추가
   main:
     allow-bean-definition-overriding: true
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL_RESERVATION}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    master:
+      jdbc-url: ${DB_URL_RESERVATION}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+        idle-timeout: 300000  # 5분
+        connection-timeout: 20000  # 20초
+        pool-name: MasterHikariPool
+
+    slave:
+      jdbc-url: ${DB_URL_RESERVATION_SLAVE}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 10
+        idle-timeout: 300000
+        connection-timeout: 20000
+        pool-name: SlaveHikariPool
 
   jpa:
     show-sql: true
@@ -29,8 +47,10 @@ spring:
     topic:
       payment-events: payment-events
       reservation-events: reservation-events
+      reservation-created: seat.reservation.created
+      reservation-created-compensation: seat.reservation.created.compensation
     consumer:
-      group-id: notification-group
+      group-id: reservation-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -42,13 +62,21 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${server.port}
+    prefer-ip-address: true
+
 payment:
   toss:
-    url: ${PAYMENT_URL}
-    test_client_api_key: ${PAYMENT_CLIENT_KEY}
-    test_secret_api_key: ${PAYMENT_SECRET_KEY}
-    success_url: ${PAYMENT_SUCCESS_URL}
-    fail_url: ${PAYMENT_FAIL_URL}
+    url: "https://api.tosspayments.com/v1/payments"
+    test_client_api_key: test_ck_d46qopOB896o7NDMkGm73ZmM75y0
+    test_secret_api_key: test_sk_KNbdOvk5rkm6kdBBpzMz3n07xlzm
+    success_url: "http://localhost:8080/api/v1/payments/toss/success"
+    fail_url: "http://localhost:8080/api/v1/payments/toss/fail"
 
 webhooks:
   url: ${WEBHOOKS_URL}

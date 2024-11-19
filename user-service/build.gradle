@@ -28,6 +28,7 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation project(':datasource-common')
     // Spring Boot 기본 스타터 패키지
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -61,6 +62,7 @@ dependencies {
 
     //prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     //로깅

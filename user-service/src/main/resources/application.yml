@@ -6,13 +6,32 @@ spring:
     name: user-service
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/userservice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root
+    master:
+      jdbc-url: ${DB_URL_USER}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+        idle-timeout: 300000  # 5분
+        connection-timeout: 20000  # 20초
+        pool-name: MasterHikariPool
+
+    slave:
+      jdbc-url: ${DB_URL_USER_SLAVE}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      hikari:
+        maximum-pool-size: 20
+        minimum-idle: 10
+        idle-timeout: 300000
+        connection-timeout: 20000
+        pool-name: SlaveHikariPool
 
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
@@ -26,8 +45,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: team.jariotte@gmail.com
-    password: gvmnniigwxirvwis
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -62,6 +81,6 @@ logging:
   config: classpath:logback-user.xml
 
 kakao:
-  client_id: 8a8997adb373bd809a4e9631152c6d88
-  redirect_uri: http://localhost:8083/api/v1/users/oauth/kakao/callback
+  client_id: ${KAKAO_CLIENT_ID}
+  redirect_uri: ${REDIRECT_URL}
 

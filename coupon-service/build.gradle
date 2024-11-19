@@ -28,6 +28,7 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation project(':datasource-common')
     // 기존 의존성
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

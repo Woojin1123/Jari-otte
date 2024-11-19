@@ -8,6 +8,7 @@ import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
 import com.eatpizzaquickly.userservice.entity.User;
+
 import com.eatpizzaquickly.userservice.enums.UserRole;
 import com.eatpizzaquickly.userservice.exception.*;
 import com.eatpizzaquickly.userservice.repository.HostBalanceJdbcRepository;
@@ -137,6 +138,7 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> findAll() {
         List<User> users = userRepository.findAll();
 
