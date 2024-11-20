@@ -6,43 +6,29 @@ pipeline {
     }
 
     environment {
-        SERVICE_NAME = 'concert-service'
-        IMAGE_TAG = "concert-service-latest" // latest 태그만 사용
+        SERVICE_NAME = 'eureka-server'
+        IMAGE_TAG = "eureka-server-latest"
+        ECR_REGISTRY = credentials('ECR_REGISTRY')
+        AWS_REGION = credentials('AWS_REGION')
     }
 
     stages {
         stage('Prepare Config') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'WEBHOOKS_URL', variable: 'WEBHOOKS_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
-                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
-                    string(credentialsId: 'DB_URL_CONCERT_SLAVE', variable: 'DB_URL_CONCERT_SLAVE'),
-                    string(credentialsId: 'DB_URL_CONCERT', variable: 'DB_URL_CONCERT'),
-                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
-                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
-                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
-                    string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     script {
                         echo "Preparing configuration values..."
                         echo "AWS_REGION: ${AWS_REGION}"
                         echo "ECR_REGISTRY: ${ECR_REGISTRY}"
-                        echo "DB_URL_CONCERT: ${DB_URL_CONCERT}"
-                        echo "REDIS_HOST: ${REDIS_HOST}"
-                        echo "REDIS_PORT: ${REDIS_PORT}"
 
                         // Check essential variables
                         if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
                             error("Essential AWS credentials or registry information is missing.")
-                        }
-
-                        if (!DB_URL_CONCERT || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT) {
-                            error("Database or Redis configuration is missing.")
                         }
 
                         echo "Configuration values successfully loaded and verified."
@@ -54,17 +40,14 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
-                    // 변경된 파일 목록 가져오기
                     def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
-
-                    // concert-service 디렉토리의 변경사항이 있는지 확인
-                    def serviceChanged = changes.split('\n').any { it.startsWith('concert-service/') }
+                    def serviceChanged = changes.split('\n').any { it.startsWith('eureka-server/') }
 
                     if (!serviceChanged) {
                         currentBuild.result = 'NOT_BUILT'
-                        error('No changes in concert-service directory, skipping build')
+                        error('No changes in eureka-server directory, skipping build')
                     }
-                    echo "Changes detected in concert-service directory. Proceeding with build..."
+                    echo "Changes detected in eureka-server directory. Proceeding with build..."
                 }
             }
         }
@@ -83,19 +66,11 @@ pipeline {
 
         stage('Build') {
             steps {
-                dir('concert-service') {
+                dir('eureka-server') {
                     sh '''
                         chmod +x gradlew
                         ./gradlew clean build -x test
                     '''
-                }
-            }
-            post {
-                success {
-                    echo "Build stage completed successfully"
-                }
-                failure {
-                    error "Build stage failed"
                 }
             }
         }
@@ -103,26 +78,12 @@ pipeline {
         stage('ECR Login & Docker Build') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'WEBHOOKS_URL', variable: 'WEBHOOKS_URL'),
-                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
-                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
-                    string(credentialsId: 'DB_URL_CONCERT', variable: 'DB_URL_CONCERT'),
-                    string(credentialsId: 'DB_URL_CONCERT_SLAVE', variable: 'DB_URL_CONCERT_SLAVE'),
-                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
-                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
-                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
-                    string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
-
-
-
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     script {
-                        // AWS 환경 변수 설정 및 ECR 로그인
                         sh '''
                         export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                         export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
@@ -131,21 +92,8 @@ pipeline {
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
                         '''
 
-                        // Docker 이미지 빌드 및 latest 태그 설정
                         sh '''
-                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
-                            --build-arg WEBHOOKS_URL=$WEBHOOKS_URL \
-                            --build-arg EUREKA_URL=${EUREKA_URL} \
-                            --build-arg DB_URL_CONCERT=$DB_URL_CONCERT \
-                            --build-arg DB_URL_CONCERT_SLAVE=$DB_URL_CONCERT_SLAVE \
-                            --build-arg DB_USERNAME=$DB_USERNAME \
-                            --build-arg DB_PASSWORD=$DB_PASSWORD \
-                            --build-arg REDIS_HOST=$REDIS_HOST \
-                            --build-arg REDIS_PORT=$REDIS_PORT \
-                            --build-arg ELASTIC_USERNAME=$ELASTIC_USERNAME \
-                            --build-arg ELASTIC_PASSWORD=ELASTIC_PASSWORD \
-
-                            concert-service/
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG eureka-server/
                         '''
                     }
                 }
@@ -162,10 +110,6 @@ pipeline {
                 ]) {
                     script {
                         sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                        export AWS_DEFAULT_REGION=$AWS_REGION
-
                         docker push $ECR_REGISTRY:$IMAGE_TAG
                         '''
                     }
@@ -182,10 +126,6 @@ pipeline {
                 ]) {
                     script {
                         sh '''
-                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                        export AWS_DEFAULT_REGION=$AWS_REGION
-
                         aws ecs update-service \
                             --cluster Jari-otte \
                             --service $SERVICE_NAME \
@@ -218,7 +158,6 @@ pipeline {
             """
         }
         always {
-            // 작업 완료 후 정리
             cleanWs()
         }
     }

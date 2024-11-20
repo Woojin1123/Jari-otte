@@ -80,7 +80,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.eatpizzaquickly.couponservice.event"
+        spring.json.trusted.packages: "*"
         fetch.min.bytes: 1024
         fetch.max.wait.ms: 500
         max.partition.fetch.bytes: 1048576

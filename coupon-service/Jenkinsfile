@@ -15,6 +15,7 @@ pipeline {
            steps {
                withCredentials([
                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
@@ -65,7 +66,7 @@ pipeline {
 
        stage('Checkout') {
            steps {
-               git branch: 'release/v2',
+               git branch: 'release/v3',
                    url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
 
                script {
@@ -98,6 +99,7 @@ pipeline {
            steps {
                withCredentials([
                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                   string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
@@ -121,6 +123,7 @@ pipeline {
 
                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
                            --build-arg DB_URL_COUPON="$DB_URL_COUPON" \
+                           --build-arg EUREKA_URL="$EUREKA_URL" \
                            --build-arg DB_USERNAME="$DB_USERNAME" \
                            --build-arg DB_PASSWORD="$DB_PASSWORD" \
                            --build-arg REDIS_HOST="$REDIS_HOST" \

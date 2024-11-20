@@ -1,4 +1,4 @@
-
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # 환경변수 정의 - api-gateway에 필요한 것만
