@@ -37,7 +37,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 | 오강욱     | [블로그](https://velog.io/@kanguk_o/posts) | [GitHub](https://github.com/KangWookOh) |
 | 정이삭     | [블로그](https://crawling-balaur-167.notion.site/5-7b9fed58db7649539ddfc794efc21e1a?pvs=4) | [GitHub](https://github.com/golden-hamster) |
 | 김우진     | [블로그](https://mixolydian-guan-603.notion.site/5-11cf1450e57980acac91e42584c931c2?pvs=74) | [GitHub](https://github.com/Woojin1123) |
-| 김     | [블로그](https://ican0422.notion.site/5-1281a4b2e1f180469111c23146a93484?pvs=4) | [GitHub](https://github.com/ican0422) |
+| 김 현    | [블로그](https://ican0422.notion.site/5-1281a4b2e1f180469111c23146a93484?pvs=4) | [GitHub](https://github.com/ican0422) |
 
 
 # 와이어 프레임
