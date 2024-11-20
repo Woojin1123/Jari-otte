@@ -3,10 +3,12 @@ package com.eatpizzaquickly.userservice.service;
 
 import com.eatpizzaquickly.userservice.common.config.JwtUtils;
 import com.eatpizzaquickly.userservice.common.config.PasswordEncoder;
+import com.eatpizzaquickly.userservice.common.exception.UnauthorizedException;
 import com.eatpizzaquickly.userservice.dto.HostPointRequestDto;
 import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.dto.UserRequestDto;
 import com.eatpizzaquickly.userservice.dto.UserResponseDto;
+import com.eatpizzaquickly.userservice.entity.HostBalance;
 import com.eatpizzaquickly.userservice.entity.User;
 
 import com.eatpizzaquickly.userservice.enums.UserRole;
@@ -161,6 +163,7 @@ public class UserService {
         log.info(email + " 인증 확인");
     }
 
+    @Transactional(readOnly = true)
     public boolean isUserExists(String email) {
         return userRepository.existsByEmail(email);
     }
@@ -199,5 +202,19 @@ public class UserService {
     @Transactional
     public void addPointsToHosts(List<HostPointRequestDto> hostpoints) {
         hostBalanceJdbcRepository.batchInsertHostBalance(hostpoints);
+    }
+
+    @Transactional
+    public Long getHostPoints(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException("삭제되거나 없는 유저입니다.")
+        );
+        if (!user.getUserRole().equals(UserRole.HOST)) {
+            throw new UnauthorizedException("호스트 유저만 확인할 수 있습니다.");
+        }
+        HostBalance hostBalance = hostBalanceRepository.findByHostId(user.getId()).orElse(
+                hostBalanceRepository.save(new HostBalance(user.getId(), 0L))
+        );
+        return hostBalance.getBalance();
     }
 }

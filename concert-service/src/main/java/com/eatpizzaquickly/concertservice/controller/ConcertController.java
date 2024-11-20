@@ -45,7 +45,7 @@ public class ConcertController {
 
     @PostMapping("/hosts")
     ResponseEntity<ConcertHostResponseDto> findHostIdsByConcertIds(@RequestBody HostIdRequestDto hostIdRequestDto){
-        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(hostIdRequestDto));
+        return ResponseEntity.ok(concertService.findHostIdsByConcertIds(hostIdRequestDto)); // feign통신
     }
 
     @GetMapping

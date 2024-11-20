@@ -63,6 +63,13 @@ public class UserController {
         );
     }
 
+    @GetMapping("/my/balances")
+    public ResponseEntity<ApiResponse<Long>> getHostPoints(@RequestHeader("X-Authenticated-User") Long userId) {
+        return ResponseEntity.ok(
+                ApiResponse.success("보유 중인 포인트", userService.getHostPoints(userId))
+        );
+    }
+
     @PatchMapping("/delete")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("X-Authenticated-User") Long userId,
                                                         @Valid @RequestBody UserRequestDto userRequestDto) {

@@ -25,7 +25,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
-    @Value("${FRONT_URL}")
+    @Value("${front.url}")
     private String frontUrl;
 
     @Bean
@@ -59,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList()); // 프론트엔드 URL을 정확히 지정
+        config.setAllowedOrigins(Arrays.asList(frontUrl)); // 프론트엔드 URL을 정확히 지정
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));

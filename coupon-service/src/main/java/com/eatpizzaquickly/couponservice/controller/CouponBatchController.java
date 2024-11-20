@@ -7,7 +7,6 @@ import com.eatpizzaquickly.couponservice.service.CouponBatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ public class CouponBatchController {
     private final CouponBatchService couponBatchService;
     private final UserCouponRepository userCouponRepository;
 
+    //feign
     @GetMapping("/coupons/expired")
     public ResponseEntity<List<CouponDto>> getExpiredCoupons(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate currentDate,
