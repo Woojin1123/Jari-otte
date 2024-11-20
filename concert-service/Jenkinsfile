@@ -25,9 +25,9 @@ pipeline {
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'ELASTIC_URL', variable: 'ELASTIC_URL'),
-                    string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
-                    string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
+                    string(credentialsId: 'ELASTICSEARCH_URL', variable: 'ELASTICSEARCH_URL'),
+                    string(credentialsId: 'ELASTICSEARCH_NAME', variable: 'ELASTICSEARCH_NAME'),
+                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD'),
                 ]) {
                     script {
                         echo "Preparing configuration values..."
@@ -116,9 +116,9 @@ pipeline {
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'ELASTIC_URL', variable: 'ELASTIC_URL'),
-                    string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
-                    string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
+                    string(credentialsId: 'ELASTICSEARCH_URL', variable: 'ELASTICSEARCH_URL'),
+                    string(credentialsId: 'ELASTICSEARCH_NAME', variable: 'ELASTICSEARCH_NAME'),
+                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD'),
 
 
 
@@ -144,9 +144,9 @@ pipeline {
                             --build-arg DB_PASSWORD=$DB_PASSWORD \
                             --build-arg REDIS_HOST=$REDIS_HOST \
                             --build-arg REDIS_PORT=$REDIS_PORT \
-                            --build-arg ELASTIC_URL=$ELASTIC_URL \
-                            --build-arg ELASTIC_USERNAME=$ELASTIC_USERNAME \
-                            --build-arg ELASTIC_PASSWORD=ELASTIC_PASSWORD \
+                            --build-arg ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
+                            --build-arg ELASTICSEARCH_NAME=$ELASTICSEARCH_NAME \
+                            --build-arg ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD \
 
                             concert-service/
                         '''
