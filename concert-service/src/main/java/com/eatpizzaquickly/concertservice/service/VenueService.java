@@ -1,6 +1,4 @@
 package com.eatpizzaquickly.concertservice.service;
-
-
 import com.eatpizzaquickly.concertservice.dto.request.VenueCreateRequest;
 import com.eatpizzaquickly.concertservice.dto.response.VenueDetailResponse;
 import com.eatpizzaquickly.concertservice.entity.Venue;

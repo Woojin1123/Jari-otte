@@ -2,7 +2,6 @@ package com.eatpizzaquickly.reservationservice.reservation.service;
 
 import com.eatpizzaquickly.reservationservice.reservation.client.KafkaEventProducer;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCompensationEvent;
-import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.dto.SeatReservationEvent;
 import com.eatpizzaquickly.reservationservice.reservation.entity.KafkaFailedMessage;
 import com.eatpizzaquickly.reservationservice.reservation.repository.KafkaFailedMessageRepository;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor

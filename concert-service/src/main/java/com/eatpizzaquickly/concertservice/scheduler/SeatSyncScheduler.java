@@ -1,8 +1,6 @@
 package com.eatpizzaquickly.concertservice.scheduler;
-
 import com.eatpizzaquickly.concertservice.entity.Concert;
 import com.eatpizzaquickly.concertservice.repository.ConcertRepository;
-import com.eatpizzaquickly.concertservice.service.ConcertService;
 import com.eatpizzaquickly.concertservice.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
