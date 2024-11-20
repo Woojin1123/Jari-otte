@@ -46,8 +46,8 @@ spring:
         max-page-size: 500
         default-page-size: 500
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   jpa:
     show-sql: true
