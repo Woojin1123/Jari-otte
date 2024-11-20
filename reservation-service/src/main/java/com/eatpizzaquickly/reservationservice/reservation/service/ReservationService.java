@@ -2,7 +2,7 @@ package com.eatpizzaquickly.reservationservice.reservation.service;
 
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.common.exception.UnauthorizedException;
-import com.eatpizzaquickly.reservationservice.reservation.dto.PostReservationResponse;
+import com.eatpizzaquickly.reservationservice.reservation.client.feign.ConcertClient;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationResponseDto;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.entity.Reservation;
@@ -20,10 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ReservationService {
+
     private final ReservationRepository reservationRepository;
+    private final ConcertClient concertClient;
 
     @Transactional
-    public PostReservationResponse createReservation(ReservationCreateRequest request) {
+    public void createReservation(ReservationCreateRequest request) {
         try {
             // 엔티티 변환
             Reservation reservation = Reservation.builder()
@@ -35,10 +37,9 @@ public class ReservationService {
                     .concertId(request.getConcertId())
                     .build();
 
-            // 저장 후 반환
-            Reservation savedReservation = reservationRepository.save(reservation);
-
-            return PostReservationResponse.from(savedReservation);
+            // 저장
+            reservationRepository.save(reservation);
+//            return PostReservationResponse.from(savedReservation);
         } catch (Exception e) {
             throw new ReservationCreationException();
         }
@@ -55,7 +56,10 @@ public class ReservationService {
 
         reservation.setStatus(ReservationStatus.CANCELED);
 
+        concertClient.restoreSeat(reservation.getConcertId(), reservation.getSeatId());
+
         reservationRepository.save(reservation);
+
     }
 
     @Transactional(readOnly = true)
