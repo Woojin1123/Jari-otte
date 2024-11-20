@@ -1,6 +1,8 @@
 package com.eatpizzaquickly.reservationservice.payment.service;
 
 import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
+import com.eatpizzaquickly.reservationservice.common.enums.PayMethod;
+import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
@@ -12,8 +14,7 @@ import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentRespon
 import com.eatpizzaquickly.reservationservice.payment.dto.response.TossPaymentResponse;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.UserResponseDto;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.*;
-import com.eatpizzaquickly.reservationservice.common.enums.PayMethod;
-import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
+
 import com.eatpizzaquickly.reservationservice.payment.entity.Payment;
 import com.eatpizzaquickly.reservationservice.common.enums.SettlementStatus;
 import com.eatpizzaquickly.reservationservice.payment.exception.*;
@@ -36,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
 
 @Slf4j
 @RequiredArgsConstructor
