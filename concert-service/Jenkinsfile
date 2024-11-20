@@ -25,6 +25,7 @@ pipeline {
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'ELASTIC_URL', variable: 'ELASTIC_URL'),
                     string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
                     string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
                 ]) {
@@ -115,6 +116,7 @@ pipeline {
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'ELASTIC_URL', variable: 'ELASTIC_URL'),
                     string(credentialsId: 'ELASTIC_USERNAME', variable: 'ELASTIC_USERNAME'),
                     string(credentialsId: 'ELASTIC_PASSWORD', variable: 'ELASTIC_PASSWORD'),
 
@@ -142,6 +144,7 @@ pipeline {
                             --build-arg DB_PASSWORD=$DB_PASSWORD \
                             --build-arg REDIS_HOST=$REDIS_HOST \
                             --build-arg REDIS_PORT=$REDIS_PORT \
+                            --build-arg ELASTIC_URL=$ELASTIC_URL \
                             --build-arg ELASTIC_USERNAME=$ELASTIC_USERNAME \
                             --build-arg ELASTIC_PASSWORD=ELASTIC_PASSWORD \
 
