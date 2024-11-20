@@ -64,7 +64,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'release/v2',
+                git branch: 'release/v3',
                     url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
 
                 // 빌드 정보 출력
