@@ -21,6 +21,7 @@ pipeline {
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
                     string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                     string(credentialsId: 'FRONT_URL', variable: 'FRONT_URL')
                 ]) {
                     script {
@@ -105,6 +106,7 @@ pipeline {
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
                     string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                     string(credentialsId: 'FRONT_URL', variable: 'FRONT_URL')
                 ]) {
                     script {
@@ -124,6 +126,7 @@ pipeline {
                             --build-arg REDIS_PORT=$REDIS_PORT \
                             --build-arg JWT_KEY=$JWT_KEY \
                             --build-arg FRONT_URL=$FRONT_URL \
+                            --build-arg EUREKA_URL=$EUREKA_URL \
                             api-gateway/
                         '''
                     }
