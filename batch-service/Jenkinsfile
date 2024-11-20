@@ -1,80 +1,75 @@
 pipeline {
-    agent any
-    environment {
-        DOCKER_IMAGE = "batch-service/batch-0.0.1"
-        // Database
-        DB_URL_BATCH = credentials('DB_URL_BATCH')
-        DB_USER = credentials('DB_USER')
-        DB_PASSWORD = credentials('DB_PASSWORD')
-        // Redis
-        REDIS_HOST = credentials('REDIS_HOST')
-        REDIS_PORT = credentials('REDIS_PORT')
-        EUREKA_URL = credentials('EUREKA_URL')
-    }
-    stages {
-        stage('브랜치 확인') {
-            when {
-                expression { env.BRANCH_NAME == 'release/v3' }
-            }
-            steps {
-                echo "release/v3 브랜치에서 푸시 이벤트 감지됨"
-            }
-        }
-        stage('저장소 복제') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('실행 권한 부여') {
-            steps {
-                sh 'chmod +x gradlew'
-            }
-        }
-        stage('프로젝트 빌드') {
-            steps {
-                sh './gradlew clean build -x test'
-            }
-        }
-        stage('도커 이미지 빌드 및 푸시') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                            docker build --no-cache -t $DOCKER_IMAGE .
-                            docker push $DOCKER_IMAGE
-                        '''
-                    }
-                }
-            }
-        }
-        stage('배포') {
-            steps {
-                script {
-                    sh '''
-                        docker stop batch-service || true
-                        docker rm batch-service || true
-                        docker pull $DOCKER_IMAGE
-                        docker run -d --name batch-service \
-                            --network host \
-                            -e DB_URL_BATCH=$DB_URL_BATCH \
-                            -e DB_USER=$DB_USER \
-                            -e DB_PASSWORD=$DB_PASSWORD \
-                            -e REDIS_HOST=$REDIS_HOST \
-                            -e REDIS_PORT=$REDIS_PORT \
-                            -e EUREKA_URL=$EUREKA_URL \
-                            $DOCKER_IMAGE
-                    '''
-                }
-            }
-        }
-    }
-    post {
-        always {
-            node {
-                sh 'docker logout'
-                cleanWs()
-            }
-        }
-    }
+  agent any
+  environment {
+      DOCKER_IMAGE = "batch-service/batch-0.0.1"
+      // Database
+      DB_URL_BATCH = credentials('DB_URL_BATCH')
+      DB_USER = credentials('DB_USER')
+      DB_PASSWORD = credentials('DB_PASSWORD')
+      // Redis
+      REDIS_HOST = credentials('REDIS_HOST')
+      REDIS_PORT = credentials('REDIS_PORT')
+      EUREKA_URL = credentials('EUREKA_URL')
+  }
+  stages {
+      stage('Check Branch') {
+          when {
+              branch 'release/v3'
+          }
+          steps {
+              echo "Push event detected on 'main' branch"
+          }
+      }
+      stage('Clone Repository') {
+          steps {
+              git branch: 'release/v3', url: "https://github.com/Eat-pizza-quickly/Jari-otte"
+          }
+      }
+      stage('Grant Execute Permission') {
+          steps {
+              sh 'chmod +x gradlew'
+          }
+      }
+      stage('Build Project') {
+          steps {
+              sh './gradlew clean build -x test'
+          }
+      }
+      stage('Build and Push Docker Image') {
+          steps {
+              script {
+                  withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                      sh '''
+                          echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                          docker build -t $DOCKER_IMAGE .
+                          docker push $DOCKER_IMAGE
+                      '''
+                  }
+              }
+          }
+      }
+      stage('Deploy') {
+          steps {
+              sh '''
+                  docker stop batch-service || true
+                  docker rm batch-service || true
+                  docker run -d --name batch-service -p 8089:8089 \
+                  -e DB_URL_BATCH=$DB_URL_BATCH \
+                  -e DB_USER=$DB_USER \
+                  -e DB_PASSWORD=$DB_PASSWORD \
+                  -e REDIS_HOST=$REDIS_HOST \
+                  -e REDIS_PORT=$REDIS_PORT \
+                  -e EUREKA_URL=$EUREKA_URL \
+                  $DOCKER_IMAGE
+              '''
+          }
+      }
+  }
+  post {
+      always {
+          script {
+              sh 'docker logout'
+          }
+      }
+  }
 }
