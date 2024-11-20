@@ -18,7 +18,7 @@ spring:
       port: ${REDIS_PORT}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://172.31.15.34:3306/batch
+    url: jdbc:mysql://13.124.17.212:3306/batch
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
