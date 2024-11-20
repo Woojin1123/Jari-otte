@@ -15,6 +15,7 @@ pipeline {
             steps {
                 withCredentials([
                     string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'LOGSTASH_URL', variable: 'LOGSTASH_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
@@ -96,6 +97,7 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'LOGSTASH_URL', variable: 'LOGSTASH_URL'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
@@ -118,6 +120,7 @@ pipeline {
                         docker build -t $ECR_REGISTRY:$IMAGE_TAG \
                             --build-arg EUREKA_URL=${EUREKA_URL} \
                             --build-arg DB_URL_BATCH=$DB_URL_BATCH \
+                            --build-arg LOGSTASH_URL=$LOGSTASH_URL \
                             --build-arg DB_USERNAME=$DB_USERNAME \
                             --build-arg DB_PASSWORD=$DB_PASSWORD \
                             --build-arg REDIS_HOST=$REDIS_HOST \
@@ -154,6 +157,7 @@ pipeline {
             steps {
                 withCredentials([
                     string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'LOGSTASH_URL', variable: 'LOGSTASH_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
@@ -186,6 +190,7 @@ pipeline {
                             -p 8089:8089 \
                             --restart unless-stopped \
                             -e EUREKA_URL=$EUREKA_URL \
+                            -e LOGSTASH_URL=$LOGSTASH_URL \
                             -e DB_URL_BATCH=$DB_URL_BATCH \
                             -e DB_USERNAME=$DB_USERNAME \
                             -e DB_PASSWORD=$DB_PASSWORD \
