@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.apigateway.common.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,9 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
+    @Value("${FRONT_URL}")
+    private String frontUrl;
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
@@ -46,7 +50,7 @@ public class SecurityConfig {
                                 "/api/v1/concerts/*", "/api/v1/concerts/category/*").permitAll()
                         .pathMatchers(HttpMethod.PATCH, "/api/v1/concerts/*").hasAuthority("ADMIN")
                         .pathMatchers("/api/v1/users/oauth/kakao").permitAll()
-                        .pathMatchers("/api/v1/users//oauth/kakao/callback/").permitAll()
+                        .pathMatchers("/api/v1/users/oauth/kakao/callback/").permitAll()
                         .pathMatchers("/payment.html").permitAll()
                         .anyExchange().authenticated())  // 나머지는 인증 필요
                 .build();
@@ -55,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // 프론트엔드 URL을 정확히 지정
+        config.setAllowedOrigins(Arrays.asList()); // 프론트엔드 URL을 정확히 지정
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));

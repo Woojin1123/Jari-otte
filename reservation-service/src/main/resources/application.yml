@@ -65,14 +65,14 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
 
 payment:
   toss:
-    url: "https://api.tosspayments.com/v1/payments"
+    url: ${TOSS_URL}
     test_client_api_key: test_ck_d46qopOB896o7NDMkGm73ZmM75y0
     test_secret_api_key: test_sk_KNbdOvk5rkm6kdBBpzMz3n07xlzm
     success_url: "http://localhost:8080/api/v1/payments/toss/success"
