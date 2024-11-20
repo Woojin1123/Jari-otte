@@ -9,6 +9,7 @@ pipeline {
         // Redis
         REDIS_HOST = credentials('REDIS_HOST')
         REDIS_PORT = credentials('REDIS_PORT')
+        EUREKA_URL = credentials('EUREKA_URL')
 
 
     }
@@ -60,6 +61,7 @@ pipeline {
                     -e DB_PASSWORD=$DB_PASSWORD \
                     -e REDIS_HOST=$REDIS_HOST \
                     -e REDIS_PORT=$REDIS_PORT \
+                    -e EUREKA_URL=$EUREKA_URL \
                     $DOCKER_IMAGE
                 '''
             }
