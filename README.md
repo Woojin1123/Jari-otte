@@ -36,7 +36,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
   
 | 주소       | 오강욱 (팀장)                 | 정이삭 (부팀장)                 | 김 현 (팀원)                  | 김우진 (팀원)                 |
 |:------------:|:-----------------------------:|:-----------------------------:|:-----------------------------:|:-----------------------------:|
-| 블로그 주소      | [블로그](https://velog.io/@kanguk_o/posts) | [블로그](https://crawling-balaur-167.notion.site/5-7b9fed58db7649539ddfc794efc21e1a?pvs=4) | [블로그](https://ican0422.notion.site/5-1281a4b2e1f180469111c23146a93484?pvs=4) | [블로그](https://mixolydian-guan-603.notion.site/5-11cf1450e57980acac91e42584c931c2?pvs=74) |
+| 블로그 주소      | [블로그](https://velog.io/@kanguk_o/posts) | [블로그](https://crawling-balaur-167.notion.site/5-7b9fed58db7649539ddfc794efc21e1a?pvs=4) | [블로그](https://hyun-my-it-blog.tistory.com/) | [블로그]([https://mixolydian-guan-603.notion.site/5-11cf1450e57980acac91e42584c931c2?pvs=74](https://velog.io/@boom3652/posts)) |
 | GitHub 주소     | [GitHub](https://github.com/KangWookOh) | [GitHub](https://github.com/golden-hamster) | [GitHub](https://github.com/ican0422) | [GitHub](https://github.com/Woojin1123) |
 
 </div>
