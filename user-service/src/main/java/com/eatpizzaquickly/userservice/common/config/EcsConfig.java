@@ -1,6 +1,7 @@
 package com.eatpizzaquickly.userservice.common.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.commons.util.InetUtils;
 import org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +13,10 @@ import java.net.UnknownHostException;
 @Configuration
 @Slf4j
 public class EcsConfig {
-
+    @Value("${server.port}")
+    String port;
     @Bean
-    public EurekaInstanceConfigBean eurekaInstanceConfig(InetUtils inetUtils){
+    public EurekaInstanceConfigBean eurekaInstanceConfig(InetUtils inetUtils) {
 
         EurekaInstanceConfigBean config = new EurekaInstanceConfigBean(inetUtils);
         String ip = null;
@@ -27,7 +29,8 @@ public class EcsConfig {
 
         config.setIpAddress(ip);
         config.setPreferIpAddress(true);
-
+        config.setNonSecurePortEnabled(true);
+        config.setNonSecurePort(Integer.parseInt(port));
         return config;
     }
 }
