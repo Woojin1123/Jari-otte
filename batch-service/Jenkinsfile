@@ -2,14 +2,11 @@ pipeline {
     agent any
     environment {
         DOCKER_IMAGE = "your-dockerhub-username/batch-service"
-        // Redis
         REDIS_HOST = credentials('REDIS_HOST')
         REDIS_PORT = credentials('REDIS_PORT')
-        // Database
         DB_URL_BATCH = credentials('DB_URL_BATCH')
         DB_USER = credentials('DB_USER')
         DB_PASSWORD = credentials('DB_PASSWORD')
-        // Eureka
         EUREKA_URL = credentials('EUREKA_URL')
     }
     stages {
@@ -23,30 +20,27 @@ pipeline {
         }
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: "your-git-repository-url"
+                checkout scm
             }
         }
-        stage('Grant Execute Permission') {
+        stage('Build') {
             steps {
-                sh 'chmod +x gradlew'
+                sh '''
+                    chmod +x gradlew
+                    ./gradlew clean build -x test
+                '''
             }
         }
-        stage('Build Project') {
-            steps {
-                sh './gradlew clean build -x test'
+        stage('Docker Build and Push') {
+            environment {
+                DOCKER_CREDENTIALS = credentials('docker-credentials')
             }
-        }
-        stage('Build and Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                            docker build -t $DOCKER_IMAGE .
-                            docker push $DOCKER_IMAGE
-                        '''
-                    }
-                }
+                sh '''
+                    docker login -u ${DOCKER_CREDENTIALS_USR} -p ${DOCKER_CREDENTIALS_PSW}
+                    docker build -t ${DOCKER_IMAGE} .
+                    docker push ${DOCKER_IMAGE}
+                '''
             }
         }
         stage('Deploy') {
@@ -54,14 +48,15 @@ pipeline {
                 sh '''
                     docker stop batch-service || true
                     docker rm batch-service || true
-                    docker run -d --name batch-service -p 8089:8089 \
-                    -e REDIS_HOST=$REDIS_HOST \
-                    -e REDIS_PORT=$REDIS_PORT \
-                    -e DB_URL_BATCH=$DB_URL_BATCH \
-                    -e DB_USER=$DB_USER \
-                    -e DB_PASSWORD=$DB_PASSWORD \
-                    -e EUREKA_URL=$EUREKA_URL \
-                    $DOCKER_IMAGE
+                    docker run -d --name batch-service \
+                    -p 8089:8089 \
+                    -e REDIS_HOST=${REDIS_HOST} \
+                    -e REDIS_PORT=${REDIS_PORT} \
+                    -e DB_URL_BATCH=${DB_URL_BATCH} \
+                    -e DB_USER=${DB_USER} \
+                    -e DB_PASSWORD=${DB_PASSWORD} \
+                    -e EUREKA_URL=${EUREKA_URL} \
+                    ${DOCKER_IMAGE}
                 '''
             }
         }
@@ -71,11 +66,7 @@ pipeline {
             sh 'docker logout'
         }
         failure {
-            emailext (
-                subject: "Pipeline Failed: ${currentBuild.fullDisplayName}",
-                body: "Pipeline failure in ${env.BUILD_URL}",
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
-            )
+            echo 'Pipeline failed'
         }
     }
 }
