@@ -1,8 +1,6 @@
 package com.eatpizzaquickly.couponservice.service;
-import com.eatpizzaquickly.couponservice.common.config.UserCouponsChangedEvent;
-import com.eatpizzaquickly.couponservice.dto.CouponResponseDto;
+
 import com.eatpizzaquickly.couponservice.entity.Coupon;
-import com.eatpizzaquickly.couponservice.entity.UserCoupon;
 import com.eatpizzaquickly.couponservice.exception.CouponNotFoundException;
 import com.eatpizzaquickly.couponservice.repository.CouponsRepository;
 import com.eatpizzaquickly.couponservice.repository.UserCouponRepository;
@@ -12,9 +10,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
 
 
 @Service
@@ -48,7 +43,6 @@ public class CouponCacheService {
         return couponsRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("쿠폰이 존재하지 않습니다"));
     }
-
 
     public void clearUserCouponsCache(Long userId) {
         Cache userCouponsCache = cacheManager.getCache(USER_COUPONS_CACHE);

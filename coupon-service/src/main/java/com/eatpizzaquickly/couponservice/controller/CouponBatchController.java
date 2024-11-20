@@ -22,7 +22,7 @@ public class CouponBatchController {
     private final CouponBatchService couponBatchService;
     private final UserCouponRepository userCouponRepository;
 
-    //feign
+    //서버간 통신용 api
     @GetMapping("/coupons/expired")
     public ResponseEntity<List<CouponDto>> getExpiredCoupons(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate currentDate,

@@ -92,6 +92,8 @@ public class DataSourceConfig {
         properties.setProperty("hibernate.format_sql", "true");
         properties.setProperty("hibernate.show_sql", "true");
         properties.setProperty("hibernate.use_sql_comments", "true");
+        properties.put("hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
+        properties.put("hibernate.implicit_naming_strategy", "org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy");
 
         return properties;
     }
