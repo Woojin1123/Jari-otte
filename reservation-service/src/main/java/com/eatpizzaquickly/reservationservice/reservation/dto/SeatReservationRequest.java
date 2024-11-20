@@ -1,4 +1,4 @@
-package com.eatpizzaquickly.concertservice.dto.request;
+package com.eatpizzaquickly.reservationservice.reservation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

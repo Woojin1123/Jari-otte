@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -18,8 +19,8 @@ public class SeatSyncScheduler {
 
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정 실행
     public void syncSeatsForEndedConcerts() {
-        LocalDate today = LocalDate.now();
-        List<Concert> endedConcerts = concertRepository.findByEndDateBefore(today);
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        List<Concert> endedConcerts = concertRepository.findByEndDateBefore(todayStart);
 
         for (Concert concert : endedConcerts) {
             seatService.syncAvailableSeatsToDatabase(concert.getId());
