@@ -96,7 +96,7 @@ public class UserService {
                     expiration,
                     TimeUnit.MILLISECONDS);
         }
-
+        log.info("로그아웃");
         return null;
     }
 

@@ -17,6 +17,7 @@ public class ImageController {
 
     private final ImageService imageService;
 
+//   이미지 업로드 후 URL 반환
     @PostMapping
     public ResponseEntity<ImageResponse> uploadImage(@RequestPart final MultipartFile image) {
         final ImageResponse imageResponse = imageService.save(image);
