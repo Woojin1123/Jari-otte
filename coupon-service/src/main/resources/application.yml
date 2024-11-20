@@ -46,8 +46,8 @@ spring:
         max-page-size: 500
         default-page-size: 500
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
   jpa:
     show-sql: true
@@ -101,7 +101,7 @@ resilience4j.circuitbreaker:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_SERVER}
+      defaultZone: ${EUREKA_URL}
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true

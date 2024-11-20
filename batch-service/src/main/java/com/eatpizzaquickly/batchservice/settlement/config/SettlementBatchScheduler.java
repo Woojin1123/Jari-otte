@@ -23,7 +23,7 @@ public class SettlementBatchScheduler {
     private final JobExplorer jobExplorer;
     private final Job settlementBatchJob;
 
-    @Scheduled(fixedDelay = Long.MAX_VALUE, initialDelay = 10000)
+    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
     public void runBatchJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder(jobExplorer)
