@@ -136,7 +136,7 @@ pipeline {
                         // Docker 이미지 빌드 및 latest 태그 설정
                         sh '''
                         docker build -t $ECR_REGISTRY:$IMAGE_TAG \
-                            --build-arg WEBHOOKS_URL=$WEBHOOKS_URL \
+                            --build-arg WEBHOOKS_URL=${WEBHOOKS_URL} \
                             --build-arg EUREKA_URL=${EUREKA_URL} \
                             --build-arg DB_URL_CONCERT=$DB_URL_CONCERT \
                             --build-arg DB_URL_CONCERT_SLAVE=$DB_URL_CONCERT_SLAVE \
@@ -147,7 +147,6 @@ pipeline {
                             --build-arg ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
                             --build-arg ELASTICSEARCH_NAME=$ELASTICSEARCH_NAME \
                             --build-arg ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD \
-
                             concert-service/
                         '''
                     }
