@@ -34,4 +34,5 @@ public class VenueController {
         List<VenueDetailResponse> venueDetailResponses = venueService.findVenues();
         return ResponseEntity.ok(venueDetailResponses);
     }
+
 }
