@@ -32,13 +32,14 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 <img src="https://github.com/user-attachments/assets/fc09bfec-299e-48ec-8a26-65dd89abdbfd">
 </div>
 
-| 이름       | 블로그 주소                  | GitHub 주소                 |
-|------------|-----------------------------|-----------------------------|
-| 오강욱     | [블로그](https://velog.io/@kanguk_o/posts) | [GitHub](https://github.com/KangWookOh) |
-| 정이삭     | [블로그](https://crawling-balaur-167.notion.site/5-7b9fed58db7649539ddfc794efc21e1a?pvs=4) | [GitHub](https://github.com/golden-hamster) |
-| 김우진     | [블로그](https://mixolydian-guan-603.notion.site/5-11cf1450e57980acac91e42584c931c2?pvs=74) | [GitHub](https://github.com/Woojin1123) |
-| 김 현    | [블로그](https://ican0422.notion.site/5-1281a4b2e1f180469111c23146a93484?pvs=4) | [GitHub](https://github.com/ican0422) |
+<div align=center> 
+  
+| 주소       | 오강욱 (팀장)                 | 정이삭 (부팀장)                 | 김 현 (팀원)                  | 김우진 (팀원)                 |
+|:------------:|:-----------------------------:|:-----------------------------:|:-----------------------------:|:-----------------------------:|
+| 블로그 주소      | [블로그](https://velog.io/@kanguk_o/posts) | [블로그](https://crawling-balaur-167.notion.site/5-7b9fed58db7649539ddfc794efc21e1a?pvs=4) | [블로그](https://ican0422.notion.site/5-1281a4b2e1f180469111c23146a93484?pvs=4) | [블로그](https://mixolydian-guan-603.notion.site/5-11cf1450e57980acac91e42584c931c2?pvs=74) |
+| GitHub 주소     | [GitHub](https://github.com/KangWookOh) | [GitHub](https://github.com/golden-hamster) | [GitHub](https://github.com/ican0422) | [GitHub](https://github.com/Woojin1123) |
 
+</div>
 
 # 와이어 프레임
 ![image](https://github.com/user-attachments/assets/bb76cd95-b906-4bed-a0f4-b80de55b663c)
@@ -76,7 +77,8 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 </div>
 
 # 🏗 인프라 구성도
-![image (5)](https://github.com/user-attachments/assets/da3f041a-a408-4be9-9aff-3b196906de57)
+![인프라 구성도](https://github.com/user-attachments/assets/a90ce3a1-2b68-4c86-bdf6-3b7c2558fbf6)
+
 
 # 🚀 주요 기술 및 특징
 1. __마이크로서비스 아키텍처 (MSA)__
