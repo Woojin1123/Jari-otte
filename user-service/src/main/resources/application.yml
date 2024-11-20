@@ -67,7 +67,7 @@ eureka:
 
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+    key: ${JWT_KEY}
 
 management:
   endpoints:
