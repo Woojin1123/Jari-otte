@@ -40,6 +40,7 @@ pipeline {
         stage('Check Changes') {
             steps {
                 script {
+                    // 변경된 파일 목록 가져오기
                     def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
                     def serviceChanged = changes.split('\n').any { it.startsWith('eureka-server/') }
 
