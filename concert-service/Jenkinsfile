@@ -15,7 +15,6 @@ pipeline {
             steps {
                 withCredentials([
                     string(credentialsId: 'WEBHOOKS_URL', variable: 'WEBHOOKS_URL'),
-                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
@@ -28,7 +27,7 @@ pipeline {
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
                     string(credentialsId: 'ELASTICSEARCH_URL', variable: 'ELASTICSEARCH_URL'),
                     string(credentialsId: 'ELASTICSEARCH_NAME', variable: 'ELASTICSEARCH_NAME'),
-                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD')
+                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD'),
                 ]) {
                     script {
                         echo "Preparing configuration values..."
@@ -119,31 +118,37 @@ pipeline {
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
                     string(credentialsId: 'ELASTICSEARCH_URL', variable: 'ELASTICSEARCH_URL'),
                     string(credentialsId: 'ELASTICSEARCH_NAME', variable: 'ELASTICSEARCH_NAME'),
-                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD')
+                    string(credentialsId: 'ELASTICSEARCH_PASSWORD', variable: 'ELASTICSEARCH_PASSWORD'),
+
+
+
                 ]) {
                     script {
                         // AWS 환경 변수 설정 및 ECR 로그인
-                        sh """
-                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                            export AWS_DEFAULT_REGION=${AWS_REGION}
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
 
-                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
 
-                            docker build -t ${ECR_REGISTRY}:${IMAGE_TAG} \
-                                --build-arg WEBHOOKS_URL=${WEBHOOKS_URL} \
-                                --build-arg EUREKA_URL=${EUREKA_URL} \
-                                --build-arg DB_URL_CONCERT=${DB_URL_CONCERT} \
-                                --build-arg DB_URL_CONCERT_SLAVE=${DB_URL_CONCERT_SLAVE} \
-                                --build-arg DB_USERNAME=${DB_USERNAME} \
-                                --build-arg DB_PASSWORD=${DB_PASSWORD} \
-                                --build-arg REDIS_HOST=${REDIS_HOST} \
-                                --build-arg REDIS_PORT=${REDIS_PORT} \
-                                --build-arg ELASTICSEARCH_URL=${ELASTICSEARCH_URL} \
-                                --build-arg ELASTICSEARCH_NAME=${ELASTICSEARCH_NAME} \
-                                --build-arg ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD} \
-                                concert-service/
-                        """
+                        // Docker 이미지 빌드 및 latest 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg WEBHOOKS_URL=${WEBHOOKS_URL} \
+                            --build-arg EUREKA_URL=${EUREKA_URL} \
+                            --build-arg DB_URL_CONCERT=$DB_URL_CONCERT \
+                            --build-arg DB_URL_CONCERT_SLAVE=$DB_URL_CONCERT_SLAVE \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg REDIS_HOST=$REDIS_HOST \
+                            --build-arg REDIS_PORT=$REDIS_PORT \
+                            --build-arg ELASTICSEARCH_URL=$ELASTICSEARCH_URL \
+                            --build-arg ELASTICSEARCH_NAME=$ELASTICSEARCH_NAME \
+                            --build-arg ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD \
+                            concert-service/
+                        '''
                     }
                 }
             }
@@ -158,13 +163,13 @@ pipeline {
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     script {
-                        sh """
-                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                            export AWS_DEFAULT_REGION=${AWS_REGION}
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
 
-                            docker push ${ECR_REGISTRY}:${IMAGE_TAG}
-                        """
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        '''
                     }
                 }
             }
@@ -178,17 +183,17 @@ pipeline {
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     script {
-                        sh """
-                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                            export AWS_DEFAULT_REGION=${AWS_REGION}
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
 
-                            aws ecs update-service \
-                                --cluster Jari-otte \
-                                --service ${SERVICE_NAME} \
-                                --force-new-deployment \
-                                --region ${AWS_REGION}
-                        """
+                        aws ecs update-service \
+                            --cluster Jari-otte \
+                            --service $SERVICE_NAME \
+                            --force-new-deployment \
+                            --region $AWS_REGION
+                        '''
                     }
                 }
             }
