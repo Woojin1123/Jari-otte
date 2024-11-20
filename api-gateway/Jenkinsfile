@@ -20,7 +20,8 @@ pipeline {
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY')
+                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'FRONT_URL', variable: 'FRONT_URL')
                 ]) {
                     script {
                         echo "Preparing configuration values..."
@@ -103,7 +104,8 @@ pipeline {
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY')
+                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'FRONT_URL', variable: 'FRONT_URL')
                 ]) {
                     script {
                         // AWS 환경 변수 설정 및 ECR 로그인
@@ -121,6 +123,7 @@ pipeline {
                             --build-arg REDIS_HOST=$REDIS_HOST \
                             --build-arg REDIS_PORT=$REDIS_PORT \
                             --build-arg JWT_KEY=$JWT_KEY \
+                            --build-arg FRONT_URL=$FRONT_URL \
                             api-gateway/
                         '''
                     }

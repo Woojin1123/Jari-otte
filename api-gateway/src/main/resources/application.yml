@@ -67,6 +67,7 @@ server:
 #        include: health, info, prometheus
 front :
   url: ${FRONT_URL}
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
