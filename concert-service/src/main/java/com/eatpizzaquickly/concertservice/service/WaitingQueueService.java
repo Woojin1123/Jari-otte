@@ -5,7 +5,6 @@ import com.eatpizzaquickly.concertservice.exception.detail.UserNotInQueueExcepti
 import com.eatpizzaquickly.concertservice.repository.WaitingQueueRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @RequiredArgsConstructor
