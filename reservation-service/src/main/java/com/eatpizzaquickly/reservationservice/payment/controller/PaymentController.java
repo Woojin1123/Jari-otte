@@ -108,8 +108,4 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success("결제 내역 조회 성공", paymentService.getPayments(userId, page, size)));
     }
 
-//    @GetMapping("/payment-page")
-//    public String getPaymentPage() {
-//        return "redirect:/payment.html";  // 정적 리소스 리다이렉트
-//    }
 }
