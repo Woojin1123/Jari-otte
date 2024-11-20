@@ -1,72 +1,228 @@
-def builder = "any"
-def dockerImage = "kanguk148/batch-0.0.1"
+pipeline {
+    agent any
 
-properties([
-    pipelineTriggers([
+    triggers {
         githubPush()
-    ])
-])
+    }
 
-node(builder) {
-    try {
-        stage('변경사항 확인') {
-            def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
-            def serviceChanged = changes.split('\n').any { it.startsWith('batch-service/') }
+    environment {
+        SERVICE_NAME = 'batch-service'
+        IMAGE_TAG = "batch-service-latest"
+    }
 
-            if (!serviceChanged) {
-                currentBuild.result = 'NOT_BUILT'
-                error('batch-service 디렉토리에 변경사항이 없어 빌드를 건너뜁니다.')
-            }
-            echo "batch-service 디렉토리에서 변경사항이 감지되었습니다. 빌드를 진행합니다..."
-        }
+    stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
+                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "DB_URL_BATCH: ${DB_URL_BATCH}"
 
-        stage('저장소 복제') {
-            checkout scm
-            def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-            echo "빌드 커밋: ${gitCommit}"
-        }
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
 
-        stage('실행 권한 부여') {
-            sh 'chmod +x gradlew'
-        }
+                        if (!DB_URL_BATCH || !DB_USER || !DB_PASSWORD) {
+                            error("Database configuration is missing.")
+                        }
 
-        stage('프로젝트 빌드') {
-            sh './gradlew clean build -x test'
-        }
-
-        stage('도커 이미지 빌드 및 푸시') {
-            withCredentials([
-                usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS'),
-                string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
-                string(credentialsId: 'DB_USER', variable: 'DB_USER'),
-                string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
-                string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
-                string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
-                string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL')
-            ]) {
-                sh """
-                    echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                    docker build -t ${dockerImage} .
-                    docker push ${dockerImage}
-                """
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
             }
         }
 
-        stage('배포') {
-            sh """
-                docker stop batch-service || true
-                docker rm batch-service || true
-                docker run -d --name batch-service -p 8089:8089 \
-                -e DB_URL_BATCH=\$DB_URL_BATCH \
-                -e DB_USER=\$DB_USER \
-                -e DB_PASSWORD=\$DB_PASSWORD \
-                -e REDIS_HOST=\$REDIS_HOST \
-                -e REDIS_PORT=\$REDIS_PORT \
-                -e EUREKA_URL=\$EUREKA_URL \
-                ${dockerImage}
+        stage('Check Changes') {
+            steps {
+                script {
+                    def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
+                    def serviceChanged = changes.split('\n').any { it.startsWith('batch-service/') }
+
+                    if (!serviceChanged) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error('No changes in batch-service directory, skipping build')
+                    }
+                    echo "Changes detected in batch-service directory. Proceeding with build..."
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'release/v3',
+                    url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
+
+                script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    echo "Building commit: ${gitCommit}"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('batch-service') {
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build -x test
+                    '''
+                }
+            }
+            post {
+                success {
+                    echo "Build stage completed successfully"
+                }
+                failure {
+                    error "Build stage failed"
+                }
+            }
+        }
+
+        stage('ECR Login & Docker Build') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
+                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
+
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg EUREKA_URL=${EUREKA_URL} \
+                            --build-arg DB_URL_BATCH=$DB_URL_BATCH \
+                            --build-arg DB_USER=$DB_USER \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg REDIS_HOST=$REDIS_HOST \
+                            --build-arg REDIS_PORT=$REDIS_PORT \
+                            batch-service/
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Local EC2') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
+                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        # ECR 로그인 갱신
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                        # 기존 컨테이너 중지 및 제거
+                        docker stop $SERVICE_NAME || true
+                        docker rm $SERVICE_NAME || true
+
+                        # 최신 이미지 pull
+                        docker pull $ECR_REGISTRY:$IMAGE_TAG
+
+                        # 새 컨테이너 실행
+                        docker run -d \
+                            --name $SERVICE_NAME \
+                            -p 8089:8089 \
+                            --restart unless-stopped \
+                            -e EUREKA_URL=$EUREKA_URL \
+                            -e DB_URL_BATCH=$DB_URL_BATCH \
+                            -e DB_USER=$DB_USER \
+                            -e DB_PASSWORD=$DB_PASSWORD \
+                            -e REDIS_HOST=$REDIS_HOST \
+                            -e REDIS_PORT=$REDIS_PORT \
+                            $ECR_REGISTRY:$IMAGE_TAG
+
+                        # 사용하지 않는 이미지 정리
+                        docker image prune -f
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo """
+            ===========================================
+            Pipeline Successfully Completed
+            Service: ${SERVICE_NAME}
+            Image: ${ECR_REGISTRY}:${IMAGE_TAG}
+            ===========================================
             """
         }
-    } finally {
-        sh 'docker logout'
+        failure {
+            echo """
+            ===========================================
+            Pipeline Failed
+            Service: ${SERVICE_NAME}
+            Stage: ${currentBuild.result}
+            ===========================================
+            """
+        }
+        always {
+            cleanWs()
+        }
     }
 }
