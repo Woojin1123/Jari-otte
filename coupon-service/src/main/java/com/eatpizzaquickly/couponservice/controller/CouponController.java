@@ -1,26 +1,21 @@
 package com.eatpizzaquickly.couponservice.controller;
 
 
-
 import com.eatpizzaquickly.couponservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.couponservice.dto.CouponRequestDto;
 import com.eatpizzaquickly.couponservice.dto.CouponResponseDto;
-import com.eatpizzaquickly.couponservice.entity.Coupon;
-import com.eatpizzaquickly.couponservice.kafka.CouponEvent;
 import com.eatpizzaquickly.couponservice.kafka.CouponEventProducer;
 import com.eatpizzaquickly.couponservice.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
 @RequiredArgsConstructor
 public class CouponController {
-
     private final CouponService couponService;
     private final CouponEventProducer eventProducer;
 

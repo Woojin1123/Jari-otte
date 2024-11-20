@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/v1/concerts")
 @RestController
 public class ConcertController {
-
     private final ConcertService concertService;
     private final ConcertCacheService concertCacheService;
 
