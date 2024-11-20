@@ -1,0 +1,217 @@
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        SERVICE_NAME = 'user-service'
+        IMAGE_TAG = "user-service-latest" // latest 태그만 사용
+    }
+
+    stages {
+        stage('Prepare Config') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_USER', variable: 'DB_URL_USER'),
+                    string(credentialsId: 'DB_URL_USER_SLAVE', variable: 'DB_URL_USER_SLAVE'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'MAIL_USERNAME', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'MAIL_PASSWORD', variable: 'MAIL_PASSWORD'),
+                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'KAKAO_CLIENT_ID', variable: 'KAKAO_CLIENT_ID'),
+                    string(credentialsId: 'REDIRECT_URL', variable: 'REDIRECT_URL')
+                ]) {
+                    script {
+                        echo "Preparing configuration values..."
+                        echo "AWS_REGION: ${AWS_REGION}"
+                        echo "ECR_REGISTRY: ${ECR_REGISTRY}"
+                        echo "DB_URL_USER: ${DB_URL_USER}"
+                        echo "REDIS_HOST: ${REDIS_HOST}"
+                        echo "KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}"
+
+                        // Check essential variables
+                        if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !ECR_REGISTRY || !AWS_REGION) {
+                            error("Essential AWS credentials or registry information is missing.")
+                        }
+
+                        if (!DB_URL_USER || !DB_USERNAME || !DB_PASSWORD || !REDIS_HOST || !REDIS_PORT || !MAIL_USERNAME || !MAIL_PASSWORD || !JWT_KEY || !KAKAO_CLIENT_ID || !REDIRECT_URL) {
+                            error("Database, Redis, email, or JWT configuration is missing.")
+                        }
+
+                        echo "Configuration values successfully loaded and verified."
+                    }
+                }
+            }
+        }
+
+        stage('Check Changes') {
+            steps {
+                script {
+                    // 변경된 파일 목록 가져오기
+                    def changes = sh(script: "git diff --name-only HEAD^", returnStdout: true).trim()
+                    def serviceChanged = changes.split('\n').any { it.startsWith('user-service/') }
+
+                    if (!serviceChanged) {
+                        currentBuild.result = 'NOT_BUILT'
+                        error('No changes in user-service directory, skipping build')
+                    }
+                    echo "Changes detected in user-service directory. Proceeding with build..."
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'release/v3',
+                    url: 'https://github.com/Eat-pizza-quickly/Jari-otte'
+
+                script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    echo "Building commit: ${gitCommit}"
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('user-service') {
+                    sh '''
+                        chmod +x gradlew
+                        ./gradlew clean build -x test
+                    '''
+                }
+            }
+        }
+
+        stage('ECR Login & Docker Build') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'EUREKA_URL', variable: 'EUREKA_URL'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
+                    string(credentialsId: 'DB_URL_USER', variable: 'DB_URL_USER'),
+                    string(credentialsId: 'DB_URL_USER_SLAVE', variable: 'DB_URL_USER_SLAVE'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
+                    string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
+                    string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT'),
+                    string(credentialsId: 'MAIL_USERNAME', variable: 'MAIL_USERNAME'),
+                    string(credentialsId: 'MAIL_PASSWORD', variable: 'MAIL_PASSWORD'),
+                    string(credentialsId: 'JWT_KEY', variable: 'JWT_KEY'),
+                    string(credentialsId: 'KAKAO_CLIENT_ID', variable: 'KAKAO_CLIENT_ID'),
+                    string(credentialsId: 'REDIRECT_URL', variable: 'REDIRECT_URL')
+                ]) {
+                    script {
+                        // AWS 환경 변수 설정 및 ECR 로그인
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+                        '''
+
+                        // Docker 이미지 빌드 및 latest 태그 설정
+                        sh '''
+                        docker build -t $ECR_REGISTRY:$IMAGE_TAG \
+                            --build-arg DB_URL_USER=$DB_URL_USER \
+                            --build-arg EUREKA_URL=$EUREKA_URL \
+                            --build-arg DB_URL_USER_SLAVE=$DB_URL_USER_SLAVE \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
+                            --build-arg DB_PASSWORD=$DB_PASSWORD \
+                            --build-arg REDIS_HOST=$REDIS_HOST \
+                            --build-arg REDIS_PORT=$REDIS_PORT \
+                            --build-arg MAIL_USERNAME=$MAIL_USERNAME \
+                            --build-arg MAIL_PASSWORD=$MAIL_PASSWORD \
+                            --build-arg JWT_KEY=$JWT_KEY \
+                            --build-arg KAKAO_CLIENT_ID=$KAKAO_CLIENT_ID \
+                            --build-arg REDIRECT_URL=$REDIRECT_URL \
+                            user-service/
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        docker push $ECR_REGISTRY:$IMAGE_TAG
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to ECS') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    script {
+                        sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                        export AWS_DEFAULT_REGION=$AWS_REGION
+
+                        aws ecs update-service \
+                            --cluster Jari-otte \
+                            --service $SERVICE_NAME \
+                            --force-new-deployment \
+                            --region $AWS_REGION
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo """
+            ===========================================
+            Pipeline Successfully Completed
+            Service: ${SERVICE_NAME}
+            Image: ${ECR_REGISTRY}:${IMAGE_TAG}
+            ===========================================
+            """
+        }
+        failure {
+            echo """
+            ===========================================
+            Pipeline Failed
+            Service: ${SERVICE_NAME}
+            Stage: ${currentBuild.result}
+            ===========================================
+            """
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
