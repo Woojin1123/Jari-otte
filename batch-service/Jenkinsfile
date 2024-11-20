@@ -20,7 +20,7 @@ pipeline {
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
                     string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
-                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
@@ -100,7 +100,7 @@ pipeline {
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
                     string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
-                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
@@ -118,7 +118,7 @@ pipeline {
                         docker build -t $ECR_REGISTRY:$IMAGE_TAG \
                             --build-arg EUREKA_URL=${EUREKA_URL} \
                             --build-arg DB_URL_BATCH=$DB_URL_BATCH \
-                            --build-arg DB_USER=$DB_USER \
+                            --build-arg DB_USERNAME=$DB_USERNAME \
                             --build-arg DB_PASSWORD=$DB_PASSWORD \
                             --build-arg REDIS_HOST=$REDIS_HOST \
                             --build-arg REDIS_PORT=$REDIS_PORT \
@@ -159,7 +159,7 @@ pipeline {
                     string(credentialsId: 'ECR_REGISTRY', variable: 'ECR_REGISTRY'),
                     string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION'),
                     string(credentialsId: 'DB_URL_BATCH', variable: 'DB_URL_BATCH'),
-                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_USERNAME', variable: 'DB_USERNAME'),
                     string(credentialsId: 'DB_PASSWORD', variable: 'DB_PASSWORD'),
                     string(credentialsId: 'REDIS_HOST', variable: 'REDIS_HOST'),
                     string(credentialsId: 'REDIS_PORT', variable: 'REDIS_PORT')
@@ -187,7 +187,7 @@ pipeline {
                             --restart unless-stopped \
                             -e EUREKA_URL=$EUREKA_URL \
                             -e DB_URL_BATCH=$DB_URL_BATCH \
-                            -e DB_USER=$DB_USER \
+                            -e DB_USERNAME=$DB_USERNAME \
                             -e DB_PASSWORD=$DB_PASSWORD \
                             -e REDIS_HOST=$REDIS_HOST \
                             -e REDIS_PORT=$REDIS_PORT \
