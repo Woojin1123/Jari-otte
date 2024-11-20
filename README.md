@@ -59,18 +59,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 
   <img src="https://img.shields.io/badge/amazon s3-569A31?style=for-the-badge&logo=amazons3&logoColor=black"> 
   <img src="https://img.shields.io/badge/amazonaws-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white"> 
-  <img src="https://img.shields.io/badge/amazon ecs-FF9900?style=for-the-badge&logo=amazonecs&logoColor=white">
-  <br>
-  
-  <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
-  <img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white">
-  <br>
-</div>
-
-# 🏗 인프라 구성도
-![image (5)](https://github.com/user-attachments/assets/da3f041a-a408-4be9-9aff-3b196906de57)
-
-# 🚀 주요 기술 & 특징
+  <img src="https://img.shields.io/badge/amazon ecs-FF9900?style=for-the-badge&lo및 특징
 1. __마이크로서비스 아키텍처 (MSA)__
    - 서비스 간의 독립성을 확보하여 특정 서비스에 장애가 발생하더라도 나머지 서비스에 영향을 주지 않음.
    - 유연한 확장성과 유지 보수성 향상.
