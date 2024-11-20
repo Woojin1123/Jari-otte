@@ -1,24 +1,21 @@
 pipeline {
-    agent {
-        node {
-            label 'any'
-        }
-    }
+    agent any
     environment {
-        DOCKER_IMAGE = "batch-service/batch-0.0.1"
+        DOCKER_IMAGE = "your-dockerhub-username/batch-service"
+        // Redis
+        REDIS_HOST = credentials('REDIS_HOST')
+        REDIS_PORT = credentials('REDIS_PORT')
         // Database
         DB_URL_BATCH = credentials('DB_URL_BATCH')
         DB_USER = credentials('DB_USER')
         DB_PASSWORD = credentials('DB_PASSWORD')
-        // Redis
-        REDIS_HOST = credentials('REDIS_HOST')
-        REDIS_PORT = credentials('REDIS_PORT')
+        // Eureka
         EUREKA_URL = credentials('EUREKA_URL')
     }
     stages {
         stage('Check Branch') {
             when {
-                branch 'release/v3'
+                branch 'main'
             }
             steps {
                 echo "Push event detected on 'main' branch"
@@ -26,7 +23,7 @@ pipeline {
         }
         stage('Clone Repository') {
             steps {
-                git branch: 'release/v3', url: "https://github.com/Eat-pizza-quickly/Jari-otte"
+                git branch: 'main', url: "your-git-repository-url"
             }
         }
         stage('Grant Execute Permission') {
@@ -58,11 +55,11 @@ pipeline {
                     docker stop batch-service || true
                     docker rm batch-service || true
                     docker run -d --name batch-service -p 8089:8089 \
+                    -e REDIS_HOST=$REDIS_HOST \
+                    -e REDIS_PORT=$REDIS_PORT \
                     -e DB_URL_BATCH=$DB_URL_BATCH \
                     -e DB_USER=$DB_USER \
                     -e DB_PASSWORD=$DB_PASSWORD \
-                    -e REDIS_HOST=$REDIS_HOST \
-                    -e REDIS_PORT=$REDIS_PORT \
                     -e EUREKA_URL=$EUREKA_URL \
                     $DOCKER_IMAGE
                 '''
@@ -71,9 +68,14 @@ pipeline {
     }
     post {
         always {
-            script {
-                sh 'docker logout'
-            }
+            sh 'docker logout'
+        }
+        failure {
+            emailext (
+                subject: "Pipeline Failed: ${currentBuild.fullDisplayName}",
+                body: "Pipeline failure in ${env.BUILD_URL}",
+                recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+            )
         }
     }
 }
