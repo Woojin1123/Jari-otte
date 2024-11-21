@@ -78,3 +78,9 @@ logging:
     reactor.netty: DEBUG
     root: info
   config: classpath:logback-apigateway.xml
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health, info, prometheus
