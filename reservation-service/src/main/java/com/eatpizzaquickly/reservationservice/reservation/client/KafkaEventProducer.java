@@ -1,5 +1,6 @@
 package com.eatpizzaquickly.reservationservice.reservation.client;
 
+
 import com.eatpizzaquickly.reservationservice.common.util.SlackNotifier;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCompensationEvent;
 import com.eatpizzaquickly.reservationservice.reservation.exception.CompensationEventPublishingException;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
