@@ -14,7 +14,10 @@ import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelExc
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
 import com.eatpizzaquickly.reservationservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -24,6 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -37,9 +41,8 @@ public class PaymentController {
         return ResponseEntity.ok(paymentResponse);
     }
 
-    /* 결제 성공 처리 */
     @GetMapping("/toss/success")
-    public String handlePaymentSuccess(
+    public ResponseEntity<String> handlePaymentSuccess(
             @RequestParam String orderId,
             @RequestParam String paymentKey,
             @RequestParam Long amount,
@@ -47,18 +50,23 @@ public class PaymentController {
     ) {
         try {
             paymentService.TossPaymentSuccess(paymentKey, orderId, amount);
-            return "redirect:/payment/success"; // 성공 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, "/payment/success")
+                    .build();
         } catch (PaymentSessionExpiredException e) {
-            e.printStackTrace();
+            log.error("Payment session expired", e);
             redirectAttributes.addFlashAttribute("error", "결제 가능 시간이 만료되었습니다. 다시 시도해주세요.");
-            return "redirect:/payment/new"; // 새로운 결제 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, "/payment/new")
+                    .build();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Payment processing error", e);
             redirectAttributes.addFlashAttribute("error", "결제 처리 중 오류가 발생했습니다.");
-            return "redirect:/payment/error"; // 에러 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header(HttpHeaders.LOCATION, "/payment/error")
+                    .build();
         }
     }
-
     /* 결제 실패 처리 */
     @GetMapping("/toss/fail")
     public ResponseEntity<GetPaymentResponse> tossPaymentFail(
