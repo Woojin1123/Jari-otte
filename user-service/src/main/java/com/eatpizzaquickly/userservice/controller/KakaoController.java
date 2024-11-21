@@ -1,12 +1,10 @@
 package com.eatpizzaquickly.userservice.controller;
 
-import com.eatpizzaquickly.userservice.common.advice.ApiResponse;
 import com.eatpizzaquickly.userservice.dto.KakaoUserDto;
 import com.eatpizzaquickly.userservice.service.KakaoService;
 import com.eatpizzaquickly.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +43,7 @@ public class KakaoController {
         String jwtToken = userService.kakaoLogin(kakaoUser);
 
         // 4. 리다이렉트 URL 구성
-        String redirectUrl = "http://localhost:5173/?token=" + jwtToken;
+        String redirectUrl = "https://www.jariotte.store/?token=" + jwtToken;
 
         // 5. 리다이렉트
         return "redirect:" + redirectUrl;
