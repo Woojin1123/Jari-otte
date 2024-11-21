@@ -1,11 +1,8 @@
 package com.eatpizzaquickly.reservationservice.reservation.client;
-
 import com.eatpizzaquickly.reservationservice.common.util.JsonUtil;
 import com.eatpizzaquickly.reservationservice.reservation.dto.ReservationCreateRequest;
 import com.eatpizzaquickly.reservationservice.reservation.dto.SeatReservationEvent;
 import com.eatpizzaquickly.reservationservice.reservation.service.ReservationService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
