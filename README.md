@@ -290,12 +290,12 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
 
 
-### 🍕 템플릿
-### 📌 요약
+
+
 <details> 
-    <summary>
-      더보기
-    </summary>
+   <summary><font size=5>🍕 성능 개선 템플릿</font></summary>
+  
+  ### 📌 요약
   
   ### 📌배경
 
@@ -307,3 +307,14 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 # 👩‍💻 트러블 슈팅
 [트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
 
+<details> 
+   <summary><font size=5>💥 트러블 슈팅 템플릿</font></summary>
+  
+  ### 📌 요약
+  
+  ### 📌배경
+
+  ### 🚨문제점 
+
+  ### 🔧성능 개선 
+</details>
