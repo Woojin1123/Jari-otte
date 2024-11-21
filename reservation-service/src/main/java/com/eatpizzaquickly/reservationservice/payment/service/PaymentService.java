@@ -154,9 +154,9 @@ public class PaymentService {
             reservation.statusUpdate(ReservationStatus.CONFIRMED);
 
             // 4. 주문 처리 로직 (필요한 경우)
-            // orderService.completeOrder(orderId);
             ApiResponse<UserResponseDto> user = userClient.getUserById(reservation.getUserId());
             String userEmail = user.getData().getEmail();
+
 
             paymentEventProducer.sendPaymentSuccessEvent(
                     payment.getId(),
