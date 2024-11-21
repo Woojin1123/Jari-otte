@@ -45,13 +45,6 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 </div>
 <Br>
 
-
-# FlOW CHART
-![image](https://github.com/user-attachments/assets/c46525e9-bc86-4c46-9d31-65c3d7c4cdb8)
-
-# 💡 API
-[API 문서 보기](https://documenter.getpostman.com/view/37572363/2sAYBSjDDo)
-
 # ⚙ 기술 스택
 
 <div align=center> 
@@ -84,6 +77,11 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 # 🏗 인프라 구성도
 ![인프라 구성도](https://github.com/user-attachments/assets/a90ce3a1-2b68-4c86-bdf6-3b7c2558fbf6)
 
+# FlOW CHART
+![image](https://github.com/user-attachments/assets/c46525e9-bc86-4c46-9d31-65c3d7c4cdb8)
+
+# 💡 API
+[API 문서 보기](https://documenter.getpostman.com/view/37572363/2sAYBSjDDo)
 
 # 🚀 주요 기술 및 특징
 ### 🍕 __마이크로서비스 아키텍처 (MSA)__
