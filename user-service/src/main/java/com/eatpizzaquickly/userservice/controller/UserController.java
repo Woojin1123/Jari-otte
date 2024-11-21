@@ -82,7 +82,7 @@ public class UserController {
 
     // 1. 특정 사용자 정보 조회
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserResponseDto>> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserById(@PathVariable(name = "userId") Long userId) {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "조회 성공", userService.findById(userId)
