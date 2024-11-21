@@ -114,18 +114,31 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 
 # 📉 성능 개선
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
-### 🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상
-<div>
+
 <details> 
-    <summary>
-      더보기
-    </summary>
- 🍕<strong>개선점</strong>
+    <summary><font size=5>🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상</font></summary>
+
+### 📌 요약
+### 1. Before - 분산 락
+  
+<img src="https://github.com/user-attachments/assets/20f3773b-0af9-4f76-85f5-8fea0c3837a7" >
+
+### 2. After - Lua Script
+  
+<img src = "https://github.com/user-attachments/assets/73b75348-1977-4646-a84b-bedf6d5832dc" >
+
+### 성능비교
+ 
+  <img src = https://github.com/user-attachments/assets/38ad2cc8-b2f7-4ab6-82d9-1371a1b9ff6f  height="300">
+  
+### 응답 속도 평균 40~50% 향상   /  처리량 약 55% 증가
+  
+### 📌배경
 
 대용량 트래픽이 몰릴 것으로 예상되는 공연 티켓팅 서비스 프로젝트의 좌석 예매를 구현하는 중에 **동시성 문제**를 신경 써야 했습니다.<br>
 거의 동시에 여러 사람이 같은 좌석을 예매할 때 **한 사람만 성공**하고 나머지 요청에는 **예외를 반환**해야 합니다.<br>
 
-🍕<strong>선택지</strong>
+### 🚨개선 방향
 
 ### DB 락
 
@@ -161,7 +174,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
 
 
-🍕 <strong>의사결정/사유</strong>
+### 🔧성능 개선
 
 고민을 거듭한 끝에 저는 좌석 예매 기능에 **락 없이 Redis Lua script를 사용하기로 결정했습니다.**
 
@@ -172,26 +185,29 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
   </details>
       <div>
-      <h4>1. Before - 분산 락</h4>
-      <img src = "https://github.com/user-attachments/assets/8e3299f5-6063-463d-80e1-d98d5c1e9ae9">
-      <h4>2. After - Lua Script</h4>
-      <img src = https://github.com/user-attachments/assets/6afd52bc-6bc0-4c40-8708-0998667f81fe>
-      <h4>성능비교</h4>
-      <img src = https://github.com/user-attachments/assets/38ad2cc8-b2f7-4ab6-82d9-1371a1b9ff6f>
-     응답 속도 평균 40~50% 향상 <br>
-      처리량 약 55% 증가
-      </div>
 </div>
 
-### 🍕 Batch No-Offset Reader를 사용한 성능 개선
-<details> 
-    <summary>
-      더보기
-    </summary>
-      <h3>📌 배경</h3> 
 
-- **27만건의 결제 데이터에 대해 CHUNK_SIZE 100 으로 수행**
-- **27만건의 상대적으로 적은 데이터임에도 1시간 12분으로 오래걸림**
+
+<details> 
+    <summary><font size=5>🍕 Batch No-Offset Reader를 사용한 성능 개선</font></summary>
+<div>
+  
+### 📌 요약
+
+- ItemReader를 No-Offset ItemReader로 변경
+- ItemProcessor에서 발생하는 과도한 Api 통신 해결
+- #### 수행시간 1시간 12분 → 14분 5배 감소
+  
+- #### 성능 개선율 약 80%
+<img src="https://github.com/user-attachments/assets/fd4d1b50-ff50-48e4-b698-2e6e5c14c021" width="500">
+<img src = "https://github.com/user-attachments/assets/0273fd56-0e5e-40d1-a8c8-83cf26c040b2" width="500">
+
+  
+### 📌배경
+
+- <strong>27만건의 결제 데이터에 대해 CHUNK_SIZE 100 으로 수행</strong>
+- <strong>27만건의 상대적으로 적은 데이터임에도 1시간 12분으로 오래걸림</strong>
 
 ### 🚨문제점 
 
@@ -207,7 +223,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 - ItemReader의 경우 read()메서드를 통해 데이터를 한건씩 반환.
 - Processor에서 네트워크 통신을 진행할 경우 모든 데이터에 대해 네트워크 통신으로 인해응답시간*데이터 개수 만큼의 처리시간 발생
 
-### 해결 방안 🔧
+### 🔧성능 개선 
 
 1. **Offset 대신 ID 기반 조회**
   - Offset 조회 대신, Primary Key (ID)를 기준으로 조건 조회.
@@ -268,26 +284,24 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
     log.info("콘서트 feign 응답코드 : {}", concertResponse.getStatusCode());
     Map<String, Long> hostIds = concertResponse.getBody().getResult();
     ```
-
+</div>
 </details>
 
-### 📌 요약
 
-- 약 **30만 건**의 데이터를 처리하는 배치에서 데이터 읽기(ItemReader)와 쓰기(ItemWriter) 단계에서 **지연** 발생.
-- 주요 병목은 **Offset 기반 조회**와 **JPA의 saveAll**로 인한 비효율적 작업 처리
-- ItemProcessor에서 발생하는 과도한 Api 통신
 
-#### 수행시간 1시간 12분 → 14분 5배 감소
-
-#### 성능 개선율 약 80%
-![image](https://github.com/user-attachments/assets/fd4d1b50-ff50-48e4-b698-2e6e5c14c021)
-![image](https://github.com/user-attachments/assets/0273fd56-0e5e-40d1-a8c8-83cf26c040b2)
 
 ### 🍕 템플릿
+### 📌 요약
 <details> 
     <summary>
       더보기
     </summary>
+  
+  ### 📌배경
+
+  ### 🚨문제점 
+
+  ### 🔧성능 개선 
 </details>
 
 # 👩‍💻 트러블 슈팅
