@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 public class ReservationResponseDto {
+    private Long reservationId;
     private Long concertId;
     private LocalDateTime createdAt;
     private int price;
@@ -19,6 +20,7 @@ public class ReservationResponseDto {
 
     public static ReservationResponseDto from(Reservation reservation) {
         return new ReservationResponseDto(
+                reservation.getId(),
                 reservation.getConcertId(),
                 reservation.getCreatedAt(),
                 reservation.getPrice(),
