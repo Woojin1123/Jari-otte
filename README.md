@@ -4,7 +4,7 @@
 
 [2. 팀원](#팀원)
 
-[3. 와이어 프레임](#와이어-프레임)
+[3. 프론트 엔드](#프론트-엔드)
 
 [4. API](#-api)
 
@@ -41,7 +41,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 
 </div>
 
-# 와이어 프레임
+# 프론트 엔드
 ![image](https://github.com/user-attachments/assets/bb76cd95-b906-4bed-a0f4-b80de55b663c)
 
 # 💡 API
