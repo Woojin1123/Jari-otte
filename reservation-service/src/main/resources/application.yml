@@ -68,6 +68,20 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
+    metadata-map:
+      "prometheus.scrape": "true"
+      "prometheus.path": "/actuator/prometheus"
+      "prometheus.port": "8082"
+
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: prometheus, health
+      endpoint:
+        prometheus:
+          enabled: true
+
 payment:
   toss:
     url: ${TOSS_URL}

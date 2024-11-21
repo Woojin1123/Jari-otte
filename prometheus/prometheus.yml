@@ -1,31 +1,47 @@
+global:
+  scrape_interval: 15s # 기본 스크레이핑 간격
+  evaluation_interval: 15s
+
 scrape_configs:
-  - job_name: "user-service"
-    metrics_path: "/actuator/prometheus"
+  - job_name: "eureka-discovery"
+    metrics_path: "/actuator/prometheus" # 각 서비스의 메트릭 경로
     scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8083"]
-  - job_name: "api-gateway"
-    metrics_path: "/actuator/prometheus"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8080"]
-  - job_name: "concert-service"
-    metrics_path: "/actuator/prometheus"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8081"]
-  - job_name: "coupon-service"
-    metrics_path: "/actuator/prometheus"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8084"]
-  - job_name: "eureka-service"
-    metrics_path: "/actuator/prometheus"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8761"]
-  - job_name: "reservation-service"
-    metrics_path: "/actuator/prometheus"
-    scrape_interval: 5s
-    static_configs:
-      - targets: ["host.docker.internal:8082"]
+    eureka_sd_configs:
+      - server:
+          - "http://3.38.141.44:8761/eureka/" # 올바른 Eureka URL
+    relabel_configs:
+      - source_labels: [__meta_eureka_app_name] # Eureka 메타데이터 확인
+        target_label: job
+      - source_labels: [__meta_eureka_instance_hostname]
+        target_label: instance
+
+  # - job_name: "user-service"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8083"]
+  # - job_name: "api-gateway"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8080"]
+  # - job_name: "concert-service"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8081"]
+  # - job_name: "coupon-service"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8084"]
+  # - job_name: "eureka-service"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8761"]
+  # - job_name: "reservation-service"
+  #   metrics_path: "/actuator/prometheus"
+  #   scrape_interval: 5s
+  #   static_configs:
+  #     - targets: ["host.docker.internal:8082"]

@@ -64,16 +64,23 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
-
-jwt:
-  secret:
-    key: ${JWT_KEY}
+    metadata-map:
+      "prometheus.scrape": "true"
+      "prometheus.path": "/actuator/prometheus"
+      "prometheus.port": "8083"
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus
+        include: prometheus, health
+  endpoint:
+    prometheus:
+      enabled: true
+
+jwt:
+  secret:
+    key: ${JWT_KEY}
 
 logging:
   level:
