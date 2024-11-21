@@ -289,8 +289,8 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 #### 수행시간 1시간 12분 → 14분 5배 감소
 
 #### 성능 개선율 약 80%
-![img.png](img.png)
-![img_1.png](img_1.png)
+![image](https://github.com/user-attachments/assets/fd4d1b50-ff50-48e4-b698-2e6e5c14c021)
+![image](https://github.com/user-attachments/assets/0273fd56-0e5e-40d1-a8c8-83cf26c040b2)
 
 ### 🍕 트러블 슈팅 템플릿
 <details> 
