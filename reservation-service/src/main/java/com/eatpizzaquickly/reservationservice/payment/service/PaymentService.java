@@ -184,12 +184,12 @@ public class PaymentService {
                 throw new PaymentSessionExpiredException("결제 세션이 만료되었습니다. 다시 결제를 시도해주세요.");
             }
             // 기타 에러
-            throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
+            throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다! : " + e.getMessage());
         } catch (Exception e) {
             // 6. 기타 예외 처리
             payment.setPayStatus(PayStatus.FAILED);
             paymentRepository.save(payment);
-            throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다: " + e.getMessage());
+            throw new PaymentProcessingException("결제 처리 중 오류 발생 PaymentStatus FAILED 로 변경: " + e.getMessage());
         }
     }
 
