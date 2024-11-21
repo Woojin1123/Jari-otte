@@ -93,11 +93,11 @@ payment:
 webhooks:
   url: ${WEBHOOKS_URL}
 
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health, info, prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
 #
 logging:
   level:
