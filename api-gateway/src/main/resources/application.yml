@@ -57,14 +57,13 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: ${EUREKA_URL}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
     metadata-map:
       "prometheus.scrape": "true"
       "prometheus.path": "/actuator/prometheus"
       "prometheus.port": "8080"
-      
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
 server:
   port: 8080
