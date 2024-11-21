@@ -40,7 +40,7 @@ public class JwtFilter implements WebFilter {
                 || path.equals("/actuator/health") || path.equals("/actuator/prometheus")
                 || path.startsWith("/api/v1/users/sendmail") || path.startsWith("/api/v1/concerts/search")
                 || path.equals("/api/v1/concerts/search/autocomplete") || path.equals("/api/v1/users/oauth/kakao")
-                || path.equals("/api/v1/users//oauth/kakao/callback/")
+                || path.equals("/api/v1/users/oauth/kakao/callback/")
                 || path.equals("/api/v1/concerts/top")
                 || path.equals("/api/v1/concerts/")
                 || (HttpMethod.GET.equals(request.getMethod()) && path.equals("/api/v1/concerts"))
