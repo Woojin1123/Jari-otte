@@ -87,12 +87,17 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
+    metadata-map:
+      prometheus.path: /actuator/prometheus
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus
+        include: prometheus, health
+  endpoint:
+    prometheus:
+      enabled: true
 
 logging:
   level:
