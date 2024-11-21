@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/concerts")
 @RestController
 public class SeatController {
-
     private final SeatService seatService;
 
     @GetMapping("/{concertId}/seats")

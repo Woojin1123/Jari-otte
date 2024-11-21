@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
-
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ReservationResponseDto>>> getReservations(
             @RequestHeader("X-Authenticated-User") Long userId,

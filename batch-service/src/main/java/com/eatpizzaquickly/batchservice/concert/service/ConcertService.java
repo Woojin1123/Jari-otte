@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 public class ConcertService {
 
     private final ConcertClient concertClient;
-
     public void resetTopConcerts() {
         concertClient.resetTopConcerts();
     }
