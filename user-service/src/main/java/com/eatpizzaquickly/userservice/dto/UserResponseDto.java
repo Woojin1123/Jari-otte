@@ -11,9 +11,7 @@ public class UserResponseDto {
 
     private Long id;
     private String email;
-
     private String nickname;
-
     private UserRole userRole;
 
     // password는 JSON 응답에서 제외되므로 제거할 수 있음
