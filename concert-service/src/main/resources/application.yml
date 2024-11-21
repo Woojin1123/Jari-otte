@@ -88,7 +88,10 @@ eureka:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
     metadata-map:
-      prometheus.path: /actuator/prometheus
+      "prometheus.scrape": "true"
+      "prometheus.path": "/actuator/prometheus"
+      "prometheus.port": "8081"
+
 
 management:
   endpoints:
