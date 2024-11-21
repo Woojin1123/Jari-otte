@@ -57,7 +57,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("https://www.jariotte.store")); // 프론트엔드 URL을 정확히 지정
+        config.setAllowedOrigins(Arrays.asList("https://www.jariotte.store","http://localhost:5173")); // 프론트엔드 URL을 정확히 지정, 테스트를 위한 로컬 URL
         config.setAllowedMethods(Arrays.asList("*"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));
