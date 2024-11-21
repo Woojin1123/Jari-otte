@@ -4,6 +4,7 @@ import com.eatpizzaquickly.reservationservice.common.config.TossPaymentConfig;
 import com.eatpizzaquickly.reservationservice.common.enums.PayMethod;
 import com.eatpizzaquickly.reservationservice.common.enums.PayStatus;
 import com.eatpizzaquickly.reservationservice.common.exception.NotFoundException;
+import com.eatpizzaquickly.reservationservice.payment.client.ApiResponse;
 import com.eatpizzaquickly.reservationservice.payment.client.CouponFeignClient;
 import com.eatpizzaquickly.reservationservice.payment.client.UserClient;
 import com.eatpizzaquickly.reservationservice.payment.dto.request.PaymentRequestDto;
@@ -154,8 +155,8 @@ public class PaymentService {
 
             // 4. 주문 처리 로직 (필요한 경우)
             // orderService.completeOrder(orderId);
-            UserResponseDto user = userClient.getUserById(reservation.getUserId()).getData();
-            String userEmail = user.getEmail();
+            ApiResponse<UserResponseDto> user = userClient.getUserById(reservation.getUserId());
+            String userEmail = user.getData().getEmail();
 
             paymentEventProducer.sendPaymentSuccessEvent(
                     payment.getId(),
