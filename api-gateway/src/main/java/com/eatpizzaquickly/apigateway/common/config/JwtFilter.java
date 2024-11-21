@@ -27,7 +27,6 @@ public class JwtFilter implements WebFilter {
     private final JwtUtils jwtUtil;
     private final RouterValidator routerValidator;
     private final RedisTemplate<String, String> redisTemplate;
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
