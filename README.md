@@ -1,41 +1,36 @@
 <div align="center">
   
 # Jari-Otte 티켓 예매 플랫폼
-![로고 메이커 프로젝트](https://github.com/user-attachments/assets/1d90f74c-168a-4686-a5a7-553d2ea7c46c)
-
+![로고 메이커 프로젝트](https://github.com/user-attachments/assets/1d90f74c-168a-4686-a5a7-553d2ea7c46c)<br>
+<Strong>[JARI-OTTE](https://www.jariotte.store/)<Strong>
 </div>
+
+
 ## 목차
 
-[1. 프로젝트 소개](#-프로젝트-소개)
+[1. 프로젝트 소개](#프로젝트-소개)
 
-[2. 팀원](#팀원)
+[2. 기술스택](#-기술-스택)
 
-[3. 프론트 엔드](#프론트-엔드)
+[3. 인프라 구성도](#-인프라-구성도)
 
 [4. Flow Chart](#FLOW-CHART)
 
 [5. API](#-api)
 
-[6. 기술스택](#-기술-스택)
+[6. 주요 기술 및 특징](#-주요-기술-및-특징)
 
-[7. 인프라 구성도](#-인프라-구성도)
+[7. 트러블 슈팅](#-트러블-슈팅)
 
-[8. 주요 기술 및 특징](#-주요-기술-및-특징)
-
-[9. 시스템 설계의 장점](#-시스템-설계의-장점)
-
-[10. 트러블 슈팅](#-트러블-슈팅)
-
-[11. 성능 개선](#-성능-개선)
+[8. 성능 개선](#-성능-개선)
 
 # 프로젝트 소개
-Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비스의 장애가 발생하더라도
+Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 특정 서비스의 장애가 발생하더라도
 
 전체 서비스에는 영향을 미치지 않도록 설계된 안정적이고 확장 가능한 티켓 예매 플랫폼입니다.
 
 이 플랫폼은 대규모 데이터를 효율적으로 처리하고, 사용자에게 빠르고 직관적인 검색 및 예매 경험을 제공하는 것을 목표로 합니다.
 
-# 팀원
 <div align=center> 
 <img src="https://github.com/user-attachments/assets/fc09bfec-299e-48ec-8a26-65dd89abdbfd">
 </div>
@@ -48,9 +43,9 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 | GitHub 주소     | [GitHub](https://github.com/KangWookOh) | [GitHub](https://github.com/golden-hamster) | [GitHub](https://github.com/ican0422) | [GitHub](https://github.com/Woojin1123) |
 
 </div>
+<Br>
 
-# 프론트 엔드
-[JARI-OTTE 바로가기](https://www.jariotte.store/)
+
 # FlOW CHART
 ![image](https://github.com/user-attachments/assets/c46525e9-bc86-4c46-9d31-65c3d7c4cdb8)
 
@@ -112,31 +107,18 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 - 조건에 맞는 결제 데이터에 대한 정산 처리
 - 안정적인 배치 작업으로 데이터 정확성과 성능 확보
 
-# 🌟 시스템 설계의 장점
-- __서비스 연속성:__ 장애 발생 시에도 독립적인 서비스 유지.
-- __확장성:__ 트래픽 변화에 따라 개별 서비스나 데이터 처리 시스템을 유연하게 확장.
-- __사용자 경험 개선:__ 고속 검색 및 예매 처리로 편리하고 신속한 서비스를 제공.
-- __운영 효율성:__ 중앙 집중화된 로그 관리와 모니터링으로 시스템 유지보수 시간 단축.
-
-# 👩‍💻 트러블 슈팅
-[트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
+# 📉 성능 개선
+[성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
 ### 🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상
 <div>
 <details> 
     <summary>
       더보기
     </summary>
- 🍕<strong>배경</strong>
+ 🍕<strong>개선점</strong>
 
 대용량 트래픽이 몰릴 것으로 예상되는 공연 티켓팅 서비스 프로젝트의 좌석 예매를 구현하는 중에 **동시성 문제**를 신경 써야 했습니다.<br>
-
-
-
-🍕<strong>요구사항</strong>
-
 거의 동시에 여러 사람이 같은 좌석을 예매할 때 **한 사람만 성공**하고 나머지 요청에는 **예외를 반환**해야 합니다.<br>
-
-
 
 🍕<strong>선택지</strong>
 
@@ -296,12 +278,13 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 ![image](https://github.com/user-attachments/assets/fd4d1b50-ff50-48e4-b698-2e6e5c14c021)
 ![image](https://github.com/user-attachments/assets/0273fd56-0e5e-40d1-a8c8-83cf26c040b2)
 
-### 🍕 트러블 슈팅 템플릿
+### 🍕 템플릿
 <details> 
     <summary>
       더보기
     </summary>
 </details>
 
-# 📉 성능 개선
-[성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
+# 👩‍💻 트러블 슈팅
+[트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
+
