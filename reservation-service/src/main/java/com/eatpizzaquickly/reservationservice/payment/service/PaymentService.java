@@ -154,8 +154,8 @@ public class PaymentService {
             reservation.statusUpdate(ReservationStatus.CONFIRMED);
 
             // 4. 주문 처리 로직 (필요한 경우)
-            ApiResponse<UserResponseDto> user = userClient.getUserById(reservation.getUserId());
-            String userEmail = user.getData().getEmail();
+            ResponseEntity<ApiResponse<UserResponseDto>> user = userClient.getUserById(reservation.getUserId());
+            String userEmail = user.getBody().getData().getEmail();
 
 
             paymentEventProducer.sendPaymentSuccessEvent(
@@ -233,7 +233,7 @@ public class PaymentService {
             reservation.statusUpdate(ReservationStatus.CANCELED);
 
             // 결제 취소 이벤트 발행
-            UserResponseDto user = userClient.getUserById(reservation.getUserId()).getData();
+            UserResponseDto user = userClient.getUserById(reservation.getUserId()).getBody().getData();
             String userEmail = user.getEmail();
 
             paymentEventProducer.sendPaymentCancelEvent(
