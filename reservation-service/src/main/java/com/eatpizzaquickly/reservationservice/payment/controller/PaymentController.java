@@ -11,7 +11,6 @@ import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentRespon
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentResponses;
 import com.eatpizzaquickly.reservationservice.payment.dto.response.PaymentSimpleResponse;
 import com.eatpizzaquickly.reservationservice.payment.exception.PaymentCancelException;
-import com.eatpizzaquickly.reservationservice.payment.exception.PaymentSessionExpiredException;
 import com.eatpizzaquickly.reservationservice.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,24 +47,10 @@ public class PaymentController {
             @RequestParam Long amount,
             RedirectAttributes redirectAttributes
     ) {
-        try {
             paymentService.TossPaymentSuccess(paymentKey, orderId, amount);
-            return ResponseEntity.status(HttpStatus.FOUND)
+            return ResponseEntity.status(HttpStatus.OK)
                     .header(HttpHeaders.LOCATION, "/payment/success")
                     .build();
-        } catch (PaymentSessionExpiredException e) {
-            log.error("Payment session expired", e);
-            redirectAttributes.addFlashAttribute("error", "결제 가능 시간이 만료되었습니다. 다시 시도해주세요.");
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "/payment/new")
-                    .build();
-        } catch (Exception e) {
-            log.error("Payment processing error", e);
-            redirectAttributes.addFlashAttribute("error", "결제 처리 중 오류가 발생했습니다.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .header(HttpHeaders.LOCATION, "/payment/error")
-                    .build();
-        }
     }
     /* 결제 실패 처리 */
     @GetMapping("/toss/fail")

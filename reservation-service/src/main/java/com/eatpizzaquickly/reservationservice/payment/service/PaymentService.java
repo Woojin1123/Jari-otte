@@ -141,8 +141,10 @@ public class PaymentService {
                 () -> new NotFoundException("예약을 찾을수 없습니다."));
 
         try {
+            ResponseEntity<ApiResponse<UserResponseDto>> user = userClient.getUserById(reservation.getUserId());
             // 2. 토스페이먼츠 결제 승인 API 호출
             TossPaymentResponse tossResponse = requestTossPayment(paymentKey, orderId, amount);
+
 
             // 3. 결제 성공 처리
             payment.setPayStatus(PayStatus.PAID);
@@ -154,8 +156,10 @@ public class PaymentService {
             reservation.statusUpdate(ReservationStatus.CONFIRMED);
 
             // 4. 주문 처리 로직 (필요한 경우)
-            ResponseEntity<ApiResponse<UserResponseDto>> user = userClient.getUserById(reservation.getUserId());
             String userEmail = user.getBody().getData().getEmail();
+
+            log.info("userEmail : {}", userEmail);
+
 
 
             paymentEventProducer.sendPaymentSuccessEvent(
