@@ -129,6 +129,57 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 
   ### ✅추가 고려 사항(선택)
 </details>
+<details> 
+   <summary><font size=5>💥 검색 결과 정확도 문제</font></summary>
+  
+  ### 📌 요약
+  - 검색 쿼리의 정확도를 높이기 위해 Elasticsearch에서 띄어쓰기 문제, 복합어 처리, 최소 Score 설정 등의 문제를 해결
+  - 사용자가 의도한 검색어에 대해 정확한 결과를 반환하도록 최적화
+  
+  ### 📌배경
+  - 사용자가 검색어를 입력할 때 띄어쓰기 없이 작성하거나 복합어 형태로 작성하는 경우가 많음
+  - Elasticsearch는 기본 설정에서는 이러한 입력을 제대로 처리하지 못하므로, 결과 정확도와 성능을 개선할 필요가 있었음
+
+  ### 🚨문제점 
+  **검색 결과가 사용자의 의도와 맞지 않음**
+  - 띄어쓰기가 없는 경우("여름공연" vs "여름 공연") Elasticsearch가 정확한 결과를 반환하지 못함.
+  - 복합어("여름공연")와 분리된 단어("여름", "공연")를 모두 처리하지 못함.
+    
+  ![띄어쓰기 없는 경우 미 반환](https://github.com/user-attachments/assets/3c15641c-7400-4710-870a-a4e0becfdbc2)
+    
+  **검색 쿼리의 스코어링 문제**
+  - Score 값이 낮거나 0으로 설정된 데이터가 검색 결과에 포함되거나 제외됨.
+    
+  ![스코어링 문제](https://github.com/user-attachments/assets/39cb710a-2073-4fa3-ad00-52b228001270)
+    
+  ### 🔧성능 개선 
+  **최소 Score 설정**
+  - minScore를 0.3으로 설정하여 낮은 점수의 결과를 제거.
+  - 사용자 의도에 가까운 검색 결과만 반환.
+    
+  ![minScore 적용](https://github.com/user-attachments/assets/d62bdbf9-4e9f-4993-a141-c77e296ce2d3)
+
+    
+  **복합어와 띄어쓰기 처리**
+  - Nori Tokenizer를 decompound_mode: mixed로 설정하여 복합어("여름공연")를 분리된 형태("여름", "공연")로 처리.
+  - 띄어쓰기 없는 단어도 분석하여 검색이 가능하도록 설정.
+    
+  ![스크린샷 2024-11-22 002610](https://github.com/user-attachments/assets/73e23923-0a15-40d5-9eae-cf6c8d128adc)
+  
+  ![스크린샷 2024-11-21 222718](https://github.com/user-attachments/assets/0232db78-a27f-4156-9ba6-1962c89d5606)
+  
+  ![스크린샷 2024-11-21 222858](https://github.com/user-attachments/assets/31a983b0-e3fd-456e-b6c0-1e75914af6ce)
+  
+  ![Nori Tokenizer](https://github.com/user-attachments/assets/6e058fd4-0e40-447d-a955-eda325ce010f)
+
+  ### 🔧결과
+  **스코어링 도입 결과**
+  ![스크린샷 2024-11-18 104432](https://github.com/user-attachments/assets/36ecf6a1-750a-4312-8843-5d9bac3ff5c3)
+
+  **띄어쓰기 없이 검색한 결과**
+  ![스크린샷 2024-11-20 065812](https://github.com/user-attachments/assets/174a50a1-5925-4662-9a76-a1f195eb327a)
+
+</details>
 
 # 📉 성능 개선
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
