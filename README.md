@@ -45,7 +45,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 ![image](https://github.com/user-attachments/assets/bb76cd95-b906-4bed-a0f4-b80de55b663c)
 
 # 💡 API
-[API 문서 보기](https://learned-wren-4a8.notion.site/13542b6edb8980fe9d5fef312ca7c6dc?v=13542b6edb89817e9dba000c6d19b0de&pvs=4)
+[API 문서 보기](https://documenter.getpostman.com/view/37572363/2sAYBSjDDo)
 
 # ⚙ 기술 스택
 
