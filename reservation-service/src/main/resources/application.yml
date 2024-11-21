@@ -61,7 +61,6 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
 eureka:
   client:
     service-url:
@@ -69,7 +68,6 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${server.port}
     prefer-ip-address: true
-
 payment:
   toss:
     url: ${TOSS_URL}
