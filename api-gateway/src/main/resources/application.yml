@@ -79,8 +79,8 @@ logging:
     root: info
   config: classpath:logback-apigateway.xml
 
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health, info, prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
