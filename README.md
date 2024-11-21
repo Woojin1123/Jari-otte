@@ -116,7 +116,7 @@ Jari-Otte는 **마이크로서비스 아키텍처(MSA)**를 통해 특정 서비
 
 # 👩‍💻 트러블 슈팅
 [트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
-## 🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상
+### 🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상
 <div>
 <details> 
     <summary>
@@ -181,18 +181,118 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
   </details>
       <div>
-      <h3>1. Before - 분산 락</h3>
+      <h4>1. Before - 분산 락</h4>
       <img src = "https://github.com/user-attachments/assets/8e3299f5-6063-463d-80e1-d98d5c1e9ae9">
-      <h3>2. After - Lua Script</h3>
+      <h4>2. After - Lua Script</h4>
       <img src = https://github.com/user-attachments/assets/6afd52bc-6bc0-4c40-8708-0998667f81fe>
-      <h3>성능비교</h3>
+      <h4>성능비교</h4>
       <img src = https://github.com/user-attachments/assets/38ad2cc8-b2f7-4ab6-82d9-1371a1b9ff6f>
      응답 속도 평균 40~50% 향상 <br>
       처리량 약 55% 증가
       </div>
 </div>
 
-## 🍕 트러블 슈팅 템플릿
+### 🍕 Batch No-Offset Reader를 사용한 성능 개선
+<details> 
+    <summary>
+      더보기
+    </summary>
+      <h3>📌 배경</h3> 
+
+- **27만건의 결제 데이터에 대해 CHUNK_SIZE 100 으로 수행**
+- **27만건의 상대적으로 적은 데이터임에도 1시간 12분으로 오래걸림**
+
+### 🚨문제점 
+
+1. **ItemReader의 Offset 조회 방식**
+  - Offset 기반 쿼리는 **OFFSET만큼의 데이터를 읽고 무시**한 후 결과를 반환.
+  - 데이터가 많아질수록 **불필요한 읽기 작업**이 증가해 성능 저하.
+2. **ItemWriter의 JPA saveAll**
+  - **Chunk_size**만큼 반복적으로 **INSERT** 쿼리를 실행.
+  - 개별 INSERT 쿼리가 많아 대량 쓰기 작업에서 비효율적.
+
+**3 .  Processor의 Feign통신**
+
+- ItemReader의 경우 read()메서드를 통해 데이터를 한건씩 반환.
+- Processor에서 네트워크 통신을 진행할 경우 모든 데이터에 대해 네트워크 통신으로 인해응답시간*데이터 개수 만큼의 처리시간 발생
+
+### 해결 방안 🔧
+
+1. **Offset 대신 ID 기반 조회**
+  - Offset 조회 대신, Primary Key (ID)를 기준으로 조건 조회.
+  - 이전 페이지의 **최대 ID**를 기억하고 `WHERE id > ? LIMIT ?` 형태로 데이터를 읽음.
+  - **불필요한 읽기 제거**로 조회 성능 대폭 개선.
+
+    ```java
+    //Redis에 이전에 조회한 ID 저장
+    redisTemplate.opsForValue().set(OFFSET_KEY, "0", 60000, TimeUnit.MILLISECONDS);
+    // QueryDsl Id를 기준으로 조회하도록 수
+     List<PaymentResponseDto> results = queryFactory
+                    .select(Projections.constructor(
+                            PaymentResponseDto.class,
+                            payment.id,
+                            payment.settlementStatus,
+                            payment.payStatus,
+                            payment.amount,
+                            payment.reservation.concertId))
+                    .from(payment)
+                    .where(
+                            payment.settlementStatus.eq(settlementStatus),
+                            payment.payStatus.eq(payStatus),
+                            payment.paidAt.before(before),
+                            payment.id.gt(currentOffset))
+                    .orderBy(payment.id.asc())
+                    .limit(chunk)
+                    .fetch();
+    ```
+
+2. **JdbcTemplate로 대량 INSERT 처리**
+  - JPA 대신 **JdbcTemplate**를 활용하여 **Batch Insert** 구현.
+  - 하나의 쿼리로 여러 Row를 처리해 데이터 쓰기 성능 최적화.
+
+    ```java
+    
+    jdbcTemplate.batchUpdate(
+        "INSERT INTO table_name (col1, col2) VALUES (?, ?)",
+        new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, dataList.get(i).getCol1());
+                ps.setString(2, dataList.get(i).getCol2());
+            }
+    
+            @Override
+            public int getBatchSize() {
+                return dataList.size();
+            }
+        });
+    ```
+
+3. **Processor → Writer로 이관**
+  - Writer에서 아래 코드를 통해 concertId에 대한 hostId를 가져오도록 변경
+
+    ```java
+    //Writer
+    ResponseEntity<ConcertHostResponseDto> concertResponse = concertClient.findHostIdsByConcertIds(requestDto);
+    log.info("콘서트 feign 응답코드 : {}", concertResponse.getStatusCode());
+    Map<String, Long> hostIds = concertResponse.getBody().getResult();
+    ```
+
+</details>
+
+### 📌 요약
+
+- 약 **30만 건**의 데이터를 처리하는 배치에서 데이터 읽기(ItemReader)와 쓰기(ItemWriter) 단계에서 **지연** 발생.
+- 주요 병목은 **Offset 기반 조회**와 **JPA의 saveAll**로 인한 비효율적 작업 처리
+- ItemProcessor에서 발생하는 과도한 Api 통신
+
+#### 수행시간 1시간 12분 → 14분 5배 감소
+
+#### 성능 개선율 약 80%
+![img.png](img.png)
+![img_1.png](img_1.png)
+
+### 🍕 트러블 슈팅 템플릿
 <details> 
     <summary>
       더보기
