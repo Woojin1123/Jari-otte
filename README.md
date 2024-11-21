@@ -116,7 +116,23 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
 
 <details> 
-    <summary><font size=5>🍕 Redis Lua Script 도입으로 동시성 제어 및 성능 향상</font></summary>
+   <summary><font size=5>🍕 [MSA] Monolith -> MSA 이관을 통한 성능 개선</font></summary>
+  
+  ### 📌 요약
+### [Before]
+![image](https://github.com/user-attachments/assets/9b6a1702-95c1-4a9e-bab1-7b3bc736c6c6)
+### [AFTER]
+![image](https://github.com/user-attachments/assets/1f182364-bcf0-4e97-a53d-740b3cb97629)
+
+  ### 🚨문제점
+
+  ### ☀️해결 방안 
+
+  ### 🔧성능 개선 
+</details>
+
+<details> 
+    <summary><font size=5>🍕 [Redis] Lua Script 도입으로 동시성 제어 및 성능 향상</font></summary>
 
 ### 📌 요약
 ### 1. Before - 분산 락
@@ -133,12 +149,12 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
   
 ### 응답 속도 평균 40~50% 향상   /  처리량 약 55% 증가
   
-### 📌배경
+### 🚨문제점
 
 대용량 트래픽이 몰릴 것으로 예상되는 공연 티켓팅 서비스 프로젝트의 좌석 예매를 구현하는 중에 **동시성 문제**를 신경 써야 했습니다.<br>
 거의 동시에 여러 사람이 같은 좌석을 예매할 때 **한 사람만 성공**하고 나머지 요청에는 **예외를 반환**해야 합니다.<br>
 
-### 🚨개선 방향
+### ☀️해결 방안
 
 ### DB 락
 
@@ -190,7 +206,7 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 
 
 <details> 
-    <summary><font size=5>🍕 Batch No-Offset Reader를 사용한 성능 개선</font></summary>
+    <summary><font size=5>🍕 [Spring Batch] No-Offset Reader를 사용한 성능 개선</font></summary>
 <div>
   
 ### 📌 요약
@@ -204,26 +220,31 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 <img src = "https://github.com/user-attachments/assets/0273fd56-0e5e-40d1-a8c8-83cf26c040b2" width="500">
 
   
-### 📌배경
+### 🚨문제점
 
 - <strong>27만건의 결제 데이터에 대해 CHUNK_SIZE 100 으로 수행</strong>
 - <strong>27만건의 상대적으로 적은 데이터임에도 1시간 12분으로 오래걸림</strong>
 
-### 🚨문제점 
+### ☀️해결 방안
 
 1. **ItemReader의 Offset 조회 방식**
   - Offset 기반 쿼리는 **OFFSET만큼의 데이터를 읽고 무시**한 후 결과를 반환.
   - 데이터가 많아질수록 **불필요한 읽기 작업**이 증가해 성능 저하.
+   
+-> **Offset을 사용하지 않는 No-Offset Reader로 교체**
+
 2. **ItemWriter의 JPA saveAll**
   - **Chunk_size**만큼 반복적으로 **INSERT** 쿼리를 실행.
   - 개별 INSERT 쿼리가 많아 대량 쓰기 작업에서 비효율적.
 
+-> **Jdbc batch Insert 사용**
 **3 .  Processor의 Feign통신**
 
 - ItemReader의 경우 read()메서드를 통해 데이터를 한건씩 반환.
-- Processor에서 네트워크 통신을 진행할 경우 모든 데이터에 대해 네트워크 통신으로 인해응답시간*데이터 개수 만큼의 처리시간 발생
+- Processor에서 네트워크 통신을 진행할 경우 모든 데이터에 대해 네트워크 통신으로 인해 응답시간*데이터 개수 만큼의 처리시간 발생
 
-### 🔧성능 개선 
+-> **Api통신을 Processor가 아닌 Writer에서 수행**
+### 🔧성능 개선
 
 1. **Offset 대신 ID 기반 조회**
   - Offset 조회 대신, Primary Key (ID)를 기준으로 조건 조회.
@@ -288,7 +309,57 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 </details>
 
 
+<details> 
+   <summary><font size=5>🍕 [Elastic Search] 검색 속도 기능 개선</font></summary>
+  
+  ### 📌 요약
+  공연 검색의 복잡한 멀티 필드 검색 문제를 해결하기 위해 Elasticsearch를 도입, 검색 속도를 87.1% 개선.
+  
+### 🚨문제점
+-**MySQL 검색의 한계**
+- **다중 필드 검색 성능 저하**: 여러 조건 결합 시 응답 시간 증가.
+- **복합 조건 처리 부족**: 효율적인 풀텍스트 검색 지원 부족.
+- **대량 요청 처리 어려움**: 높은 부하로 인한 성능 병목
 
+### ☀️해결 방안 
+  
+**Elasticsearch 도입**
+- 고성능 **풀텍스트 검색** 지원.
+- **역색인** 구조로 다중 필드와 복합 조건 처리 최적화.
+- 스케일 아웃으로 대량 요청에 효율적 대응.<br>
+
+### 🔧성능 개선 
+
+**멀티 필드 검색 구현**
+
+```
+@Query("{\"multi_match\": {" +
+       "\"query\": \"?0\"," +
+       "\"fields\": [\"name\", \"artist\"]" +
+       "}}")
+List<ConcertDocument> searchConcerts(String keyword);
+```
+
+
+
+
+- **`multi_match` 쿼리**를 활용해 다중 필드에 대한 검색 구현.
+- 유사 검색어 처리로 사용자 편의성 증대.
+**성능 개선 결과**
+- **검색 속도 87.1% 개선**: 평균 응답 시간 대폭 단축.
+- 실시간 검색 처리로 **사용자 경험 향상**.
+- 대량 트래픽 처리로 **시스템 안정성 확보**.
+- **검색 정확도**: 키워드 기반 검색의 정밀도 상승.
+- **확장성**: 대규모 데이터 증가에도 안정적인 검색 성능 유지.
+- **유연성**: 다양한 검색 조건 및 필터 지원으로 기능 확장 용이.
+
+### 추가 고려 사항 ✅
+
+- **데이터 동기화**: MySQL → Elasticsearch 간 실시간 데이터 일관성 유지.
+- **인덱스 최적화**: 불필요한 필드 최소화 및 분석기 설정 최적화.
+- **모니터링 도구 통합**: Elasticsearch의 검색 성능 및 리소스 사용량 지속 모니터링.
+
+</details>
 
 
 
@@ -297,9 +368,9 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
   
   ### 📌 요약
   
-  ### 📌배경
+  ### 🚨문제점
 
-  ### 🚨문제점 
+  ### ☀️해결 방안 
 
   ### 🔧성능 개선 
 </details>
@@ -317,4 +388,6 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
   ### 🚨문제점 
 
   ### 🔧성능 개선 
+
+  ### ✅추가 고려 사항(선택)
 </details>
