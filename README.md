@@ -24,13 +24,7 @@
 
 [8. 성능 개선](#-성능-개선)
 
-# 프로젝트 소개
-Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 특정 서비스의 장애가 발생하더라도
-
-전체 서비스에는 영향을 미치지 않도록 설계된 안정적이고 확장 가능한 티켓 예매 플랫폼입니다.
-
-이 플랫폼은 대규모 데이터를 효율적으로 처리하고, 사용자에게 빠르고 직관적인 검색 및 예매 경험을 제공하는 것을 목표로 합니다.
-
+# 팀원 소개
 <div align=center> 
 <img src="https://github.com/user-attachments/assets/fc09bfec-299e-48ec-8a26-65dd89abdbfd">
 </div>
@@ -44,6 +38,13 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 
 </div>
 <Br>
+
+# 프로젝트 소개
+Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 특정 서비스의 장애가 발생하더라도
+
+전체 서비스에는 영향을 미치지 않도록 설계된 안정적이고 확장 가능한 티켓 예매 플랫폼입니다.
+
+이 플랫폼은 대규모 데이터를 효율적으로 처리하고, 사용자에게 빠르고 직관적인 검색 및 예매 경험을 제공하는 것을 목표로 합니다.
 
 # ⚙ 기술 스택
 
@@ -74,8 +75,8 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
   <br>
 </div>
 
-# 🏗 인프라 구성도
-![인프라 구성도](https://github.com/user-attachments/assets/a90ce3a1-2b68-4c86-bdf6-3b7c2558fbf6)
+# 💡 API
+[API 문서 보기](https://documenter.getpostman.com/view/37572363/2sAYBSjDDo)
 
 # 🎮 FlOW CHART
 <h4>서비스 플로우</h4>
@@ -87,8 +88,8 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 ![image](https://github.com/user-attachments/assets/de1c6a2f-2c8c-494f-b55a-5103fbd4267c)
 
 
-# 💡 API
-[API 문서 보기](https://documenter.getpostman.com/view/37572363/2sAYBSjDDo)
+# 🏗 인프라 구성도
+![인프라 구성도](https://github.com/user-attachments/assets/a90ce3a1-2b68-4c86-bdf6-3b7c2558fbf6)
 
 # 🚀 주요 기술 및 특징
 ### 🍕 __마이크로서비스 아키텍처 (MSA)__
@@ -111,6 +112,23 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 - 대량의 쿠폰 데이터를 효율적으로 처리하여 만료 기한을 일괄 정산
 - 조건에 맞는 결제 데이터에 대한 정산 처리
 - 안정적인 배치 작업으로 데이터 정확성과 성능 확보
+
+# 👩‍💻 트러블 슈팅
+[트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
+
+<details> 
+   <summary><font size=5>💥 트러블 슈팅 템플릿</font></summary>
+  
+  ### 📌 요약
+  
+  ### 📌배경
+
+  ### 🚨문제점 
+
+  ### 🔧성능 개선 
+
+  ### ✅추가 고려 사항(선택)
+</details>
 
 # 📉 성능 개선
 [성능 개선 문서](https://abalone-kicker-cfb.notion.site/131aebc7cf8780e9a5c7d85b79c93ffc?pvs=4)
@@ -312,55 +330,195 @@ Redis를 사용하기 때문에 여러 서버에서 동시에 동작하는 분�
 <details> 
    <summary><font size=5>🍕 [Elastic Search] 검색 속도 기능 개선</font></summary>
   
+  ![약 89.84% 개선)](https://github.com/user-attachments/assets/81e5bc2a-69a5-46bc-8e99-575ce7bddd48)
+
   ### 📌 요약
-  공연 검색의 복잡한 멀티 필드 검색 문제를 해결하기 위해 Elasticsearch를 도입, 검색 속도를 87.1% 개선.
+  쿼리 최적화를 통해서 검색 속도 기능 약 89.84% 개선
   
 ### 🚨문제점
--**MySQL 검색의 한계**
-- **다중 필드 검색 성능 저하**: 여러 조건 결합 시 응답 시간 증가.
-- **복합 조건 처리 부족**: 효율적인 풀텍스트 검색 지원 부족.
-- **대량 요청 처리 어려움**: 높은 부하로 인한 성능 병목
+- **WildcardQuery로 인한 성능 저하**
+  - WildcardQuery는 전체 문서 스캔(Full Table Scan)을 유발하여 검색 속도가 매우 느려짐.
+  - 특히, query 형태의 쿼리는 대량 데이터에서 병목현상을 발생시킴.
+- **WildcardQuery로 인한 성능 저하**
+  - 필터 조건이 should 조건 아래 위치하여 후처리 단계에서 필터가 실행됨.
+  - 결과적으로 불필요한 문서들이 검색되고, 리소스 낭비가 심각하게 발생.
 
 ### ☀️해결 방안 
   
-**Elasticsearch 도입**
-- 고성능 **풀텍스트 검색** 지원.
-- **역색인** 구조로 다중 필드와 복합 조건 처리 최적화.
-- 스케일 아웃으로 대량 요청에 효율적 대응.<br>
+**WildcardQuery 제거**
+  - WildcardQuery를 삭제하고, 효율적인 Nori 분석기를 사용하여 띄어쓰기와 복합어 처리가 가능하도록 개선.
+  - WildcardQuery 없이도 높은 검색 정확도를 유지하도록 새로운 쿼리 방식 적용.
+**필터 선처리로 위치 변경**
+  - 필터 조건을 should가 아닌 filter의 상단으로 이동.
+  - 필터링을 검색의 선처리 단계에서 수행하여 불필요한 문서를 미리 제거.<br>
 
 ### 🔧성능 개선 
 
-**멀티 필드 검색 구현**
+**사용자 경험**
+  - 빠른 응답 속도로 검색 서비스 품질이 향상되어 사용자 만족도 증가.
 
+**응답 속도**
+  - 기존: 검색에 433ms 소요.
+  ![개선 전](https://github.com/user-attachments/assets/cc775507-a073-445d-b147-02a99258be8f)
+  - 개선 후: 검색 속도 44ms로 약 89.84% 개선
+  ![개선 후](https://github.com/user-attachments/assets/2e494b5a-d3d1-4ec4-a5f7-7b5b85ab7cdc)
+
+**변경 전 쿼리 코드**
+```java
+public static BoolQuery createConcertSearchQuery(String query, LocalDate startDate, LocalDate endDate) {
+        // 다중 필드 검색, 오타 허용
+        // title과 artists 필드에서 검색어가 포함된 문서를 찾고, 오타도 허용합니다.
+        MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
+                .query(query)                                  // 사용자가 입력한 검색어
+                .fields("title^2", "artists")   // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                .fuzziness("AUTO")                      // 오타를 허용하여 유사한 검색어도 매칭
+                .operator(Operator.Or)                        // 모든 검색어를 포함할 필요 없이 하나만 포함해도 매칭
+        );
+
+        // phrase_prefix
+        // 검색어가 입력된 단어의 앞부분만 맞아도 매칭되도록 설정
+        // 검색어의 접두사에 맞는 문서도 검색
+        MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
+                .query(query)                                   // 사용자가 입력한 검색어
+                .fields("title^2", "artists")    // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                .type(TextQueryType.PhrasePrefix)               // phrase_prefix 타입으로 설정하여 접두사 일치 허용
+        );
+
+        // Wildcard Query 추가: artists 필드에 대해 중간에 포함된 텍스트도 매칭
+        WildcardQuery wildcardQuery = WildcardQuery.of(w -> w
+                .field("artists")
+                .value("*" + query + "*")  // 검색어가 포함된 부분 일치 허용
+        );
+
+        // BoolQuery에 추가할 필터 리스트 생성
+        List<Query> filters = new ArrayList<>();
+
+        // 날짜 필터 추가 (startDate와 endDate가 모두 존재할 경우에만 필터 적용)
+        if (startDate != null && endDate != null) {
+            // 시작일과 종료일을 UTC 시간의 ISO-8601 문자열로 변환
+            String startDateTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC).toString();
+            String endDateTime = endDate.atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toString();
+
+            // DateRangeQuery 생성
+            DateRangeQuery dateRangeQuery = new DateRangeQuery.Builder()
+                    .field("startDate")        // 필드 지정
+                    .gte(startDateTime)              // 시작 시간
+                    .lte(endDateTime)                // 종료 시간
+                    .build();
+
+            // RangeQuery 생성 및 DateRangeQuery 추가
+            RangeQuery rangeQuery = new RangeQuery.Builder()
+                    .date(dateRangeQuery)      // DateRangeQuery를 RangeQuery에 추가
+                    .build();
+
+            // Query.Builder를 사용하여 RangeQuery 추가
+            Query rangeQueryWrapper = new Query.Builder()
+                    .range(rangeQuery)
+                    .build();
+
+            // 필터 리스트에 추가
+            filters.add(rangeQueryWrapper);
+        }
+        // 삭제 여부 필터 추가 (deleted가 false인 문서만 반환)
+        TermQuery deletedFilter = TermQuery.of(t -> t
+                .field("deleted")
+                .value(false) // deleted가 false인 문서만 포함
+        );
+        filters.add(new Query.Builder().term(deletedFilter).build());
+
+        return BoolQuery.of(b -> b
+                .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))        // 첫 번째 쿼리: 오타 허용
+                .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))    // 두 번째 쿼리: 접두사 일치
+                .should(Query.of(q -> q.wildcard(wildcardQuery)))                   // Wildcard 쿼리 추가
+                .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
+        );
+    }
 ```
-@Query("{\"multi_match\": {" +
-       "\"query\": \"?0\"," +
-       "\"fields\": [\"name\", \"artist\"]" +
-       "}}")
-List<ConcertDocument> searchConcerts(String keyword);
+
+**변경 후 쿼리 코드**
+```java
+public static BoolQuery createConcertSearchQuery(String query, LocalDate startDate, LocalDate endDate) {
+        // 다중 필드 검색, 오타 허용
+        // title과 artists 필드에서 검색어가 포함된 문서를 찾고, 오타도 허용합니다.
+        MultiMatchQuery matchQueryWithFuzziness = MultiMatchQuery.of(m -> m
+                .query(query)                                  // 사용자가 입력한 검색어
+                .fields("title^2", "artists")   // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                .fuzziness("AUTO")                      // 오타를 허용하여 유사한 검색어도 매칭
+                .operator(Operator.Or)                        // 모든 검색어를 포함할 필요 없이 하나만 포함해도 매칭
+        );
+
+        // phrase_prefix
+        // 검색어가 입력된 단어의 앞부분만 맞아도 매칭되도록 설정
+        // 검색어의 접두사에 맞는 문서도 검색
+        MultiMatchQuery matchQueryWithPhrasePrefix = MultiMatchQuery.of(m -> m
+                .query(query)                                   // 사용자가 입력한 검색어
+                .fields("title^2", "artists")    // 검색할 필드 목록 (title과 artists), title에 가중치 2배 부여
+                .type(TextQueryType.PhrasePrefix)               // phrase_prefix 타입으로 설정하여 접두사 일치 허용
+        );
+
+        // BoolQuery에 추가할 필터 리스트 생성
+        List<Query> filters = new ArrayList<>();
+
+        // 날짜 필터 추가 (startDate와 endDate가 모두 존재할 경우에만 필터 적용)
+        if (startDate != null && endDate != null) {
+            // 시작일과 종료일을 UTC 시간의 ISO-8601 문자열로 변환
+            String startDateTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC).toString();
+            String endDateTime = endDate.atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toString();
+
+            // DateRangeQuery 생성
+            DateRangeQuery dateRangeQuery = new DateRangeQuery.Builder()
+                    .field("startDate")        // 필드 지정
+                    .gte(startDateTime)              // 시작 시간
+                    .lte(endDateTime)                // 종료 시간
+                    .build();
+
+            // RangeQuery 생성 및 DateRangeQuery 추가
+            RangeQuery rangeQuery = new RangeQuery.Builder()
+                    .date(dateRangeQuery)      // DateRangeQuery를 RangeQuery에 추가
+                    .build();
+
+            // Query.Builder를 사용하여 RangeQuery 추가
+            Query rangeQueryWrapper = new Query.Builder()
+                    .range(rangeQuery)
+                    .build();
+
+            // 필터 리스트에 추가
+            filters.add(rangeQueryWrapper);
+        }
+        // 삭제 여부 필터 추가 (deleted가 false인 문서만 반환)
+        TermQuery deletedFilter = TermQuery.of(t -> t
+                .field("deleted")
+                .value(false) // deleted가 false인 문서만 포함
+        );
+        filters.add(new Query.Builder().term(deletedFilter).build());
+
+        return BoolQuery.of(b -> b
+                .filter(filters)                                                    // 필터 조건 추가 (필터가 있을 경우에만 적용)
+                .should(Query.of(q -> q.multiMatch(matchQueryWithFuzziness)))        // 첫 번째 쿼리: 오타 허용
+                .should(Query.of(q -> q.multiMatch(matchQueryWithPhrasePrefix)))    // 두 번째 쿼리: 접두사 일치
+        );
+    }
 ```
 
-
-
-
-- **`multi_match` 쿼리**를 활용해 다중 필드에 대한 검색 구현.
-- 유사 검색어 처리로 사용자 편의성 증대.
 **성능 개선 결과**
-- **검색 속도 87.1% 개선**: 평균 응답 시간 대폭 단축.
-- 실시간 검색 처리로 **사용자 경험 향상**.
-- 대량 트래픽 처리로 **시스템 안정성 확보**.
-- **검색 정확도**: 키워드 기반 검색의 정밀도 상승.
-- **확장성**: 대규모 데이터 증가에도 안정적인 검색 성능 유지.
-- **유연성**: 다양한 검색 조건 및 필터 지원으로 기능 확장 용이.
+
+| **항목**               | **기존 성능** | **개선 후 성능** | **개선 효과**            |
+|------------------------|---------------|------------------|--------------------------|
+| **응답 속도**          | 433ms         | 44ms             | 약 **90% 개선**          |
+| **리소스 소비**        | 높음          | 감소             | 불필요한 리소스 제거      |
+| **검색 정확도**        | 낮음          | 높음             | Wildcard 없이도 검색 가능 |
+| **사용자 요청 처리량** | 제한적        | 증가             | 동시 요청 처리 가능       |
+
 
 ### 추가 고려 사항 ✅
 
-- **데이터 동기화**: MySQL → Elasticsearch 간 실시간 데이터 일관성 유지.
-- **인덱스 최적화**: 불필요한 필드 최소화 및 분석기 설정 최적화.
-- **모니터링 도구 통합**: Elasticsearch의 검색 성능 및 리소스 사용량 지속 모니터링.
+- **인덱스 무중단 배포**: 새로운 매핑이나 설정 변경 시, 별도의 임시 인덱스를 생성하고 데이터 리인덱싱을 수행하여 서비스 중단 없이 배포를 완료.
+- **데이터 인덱스 최적화**: 데이터 크기와 요청 패턴에 맞는 Shard와 Replica 수를 설정하고, 불필요한 필드를 최소화하여 저장 공간과 검색 속도 최적화.
+- **클러스터 구성 관리**: 노드 역할 분리 및 확장(예: 데이터 노드, 마스터 노드 분리)로 안정성과 성능 향상.
+- **쿼리 복잡도 관리**: 불필요한 쿼리 제거 및 필터와 조건의 적절한 사용으로 검색 성능 최적화.
+- **모니터링과 로그 관리**: Kibana와 Slow Log를 활용하여 검색 요청 병목 지점 파악 및 성능 문제 사전 대응.
 
 </details>
-
 
 
 <details> 
@@ -373,21 +531,4 @@ List<ConcertDocument> searchConcerts(String keyword);
   ### ☀️해결 방안 
 
   ### 🔧성능 개선 
-</details>
-
-# 👩‍💻 트러블 슈팅
-[트러블 슈팅 & 기술 선택 문서](https://abalone-kicker-cfb.notion.site/bb89be9bc05b4618b46725fb2addce71?pvs=4)
-
-<details> 
-   <summary><font size=5>💥 트러블 슈팅 템플릿</font></summary>
-  
-  ### 📌 요약
-  
-  ### 📌배경
-
-  ### 🚨문제점 
-
-  ### 🔧성능 개선 
-
-  ### ✅추가 고려 사항(선택)
 </details>
