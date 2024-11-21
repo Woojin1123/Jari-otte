@@ -34,6 +34,7 @@ public class JwtFilter implements WebFilter {
 
         log.info("현재 요청 경로: {}", path);
 
+
         // 인증 예외 경로 설정
         if (path.equals("/api/v1/users") || path.equals("/api/v1/users/login")
                 || path.equals("/actuator/health") || path.equals("/actuator/prometheus")
