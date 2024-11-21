@@ -108,4 +108,5 @@ public class UserController {
         userService.addPointsToHosts(hostpoints);
         return ResponseEntity.ok().body("성공");
     }
+
 }

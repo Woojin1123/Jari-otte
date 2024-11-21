@@ -19,7 +19,6 @@ public class CouponController {
     private final CouponService couponService;
     private final CouponEventProducer eventProducer;
 
-
     @PostMapping
     public ResponseEntity<ApiResponse<CouponResponseDto>> createCoupon(@RequestBody CouponRequestDto couponRequestDto) {
         CouponResponseDto coupon = couponService.createCoupon(couponRequestDto);
