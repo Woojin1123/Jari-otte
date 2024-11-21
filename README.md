@@ -1,6 +1,7 @@
+<div align="center">
 # Jari-Otte 티켓 예매 플랫폼
 ![로고 메이커 프로젝트](https://github.com/user-attachments/assets/1d90f74c-168a-4686-a5a7-553d2ea7c46c)
-
+</div>
 ## 목차
 [1. 프로젝트 소개](#-프로젝트-소개)
 
