@@ -14,7 +14,7 @@ public interface UserClient {
     String CIRCUIT_BREAKER_NAME = "userService";
 
     @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "getUserByIdFallback")
-    @GetMapping("/api/v1/users/{userId}")
+    @GetMapping(value = "/api/v1/users/{userId}", consumes = "application/json", produces = "application/json")
     ResponseEntity<ApiResponse<UserResponseDto>> getUserById(@PathVariable("userId") Long userId);
 
     // Fallback method
