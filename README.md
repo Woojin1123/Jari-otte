@@ -87,6 +87,11 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 
 ![image](https://github.com/user-attachments/assets/de1c6a2f-2c8c-494f-b55a-5103fbd4267c)
 
+<h4>대기열 플로우</h4>
+
+![대기열로직 drawio (2)](https://github.com/user-attachments/assets/6c278085-1464-4812-881f-f66e7f9c7a4f)
+
+
 
 # 🏗 인프라 구성도
 ![인프라 구성도](https://github.com/user-attachments/assets/a90ce3a1-2b68-4c86-bdf6-3b7c2558fbf6)
