@@ -173,7 +173,7 @@ public class PaymentService {
                     .paymentKey(payment.getPaymentKey())
                     .amount(payment.getAmount())
                     .build();
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info(e.getMessage());
             return GetPaymentResponse.builder()
                     .payStatus(PayStatus.FAILED)
@@ -324,7 +324,7 @@ public class PaymentService {
     }
 
     public Page<PaymentSimpleResponse> getPayments(Long userId, int page, int size) {
-        int adjustedPage = Math.max(page - 1, 0); // 최소값 0으로 보정
+        int adjustedPage = Math.max(page, 0); // 최소값 0으로 보정
         Pageable pageable = PageRequest.of(adjustedPage, size);
         return paymentRepository.getPaymentByUserId(userId, pageable);
 
