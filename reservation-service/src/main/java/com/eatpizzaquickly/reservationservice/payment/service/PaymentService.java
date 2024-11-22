@@ -161,32 +161,41 @@ public class PaymentService {
             log.info("userEmail : {}", userEmail);
 
 
-
             paymentEventProducer.sendPaymentSuccessEvent(
                     payment.getId(),
                     userEmail,  // 가져온 이메일을 전달
                     payment.getAmount()
             );
 
+            return GetPaymentResponse.builder()
+                    .payStatus(PayStatus.PAID)
+                    .paymentKey(payment.getPaymentKey())
+                    .amount(payment.getAmount())
+                    .build();
+
         } catch (HttpClientErrorException e) {
             // 5. HTTP 에러 처리
-            payment.setPayStatus(PayStatus.FAILED);
+            payment.setPayStatus(PayStatus.READY);
             paymentRepository.save(payment);
 
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 // 세션 만료시
-                log.info("결제 세션이 만료 되었습니다. 다시 결제를 시도해주세요. : {}",e.getMessage());
+                log.info("결제 세션이 만료 되었습니다. 다시 결제를 시도해주세요. : {}", e.getMessage());
             }
             // 기타 에러
-            log.info("결제 처리 중 오류가 발생했습니다. ! : {}",e.getMessage());
+            log.info("결제 처리 중 오류가 발생했습니다. ! : {}", e.getMessage());
+            return GetPaymentResponse.builder()
+                    .payStatus(PayStatus.READY)
+                    .paymentKey(payment.getPaymentKey())
+                    .amount(payment.getAmount())
+                    .build();
         } catch (Exception e) {
             // 6. 기타 예외 처리
             payment.setPayStatus(PayStatus.FAILED);
             paymentRepository.save(payment);
             log.info("결제 처리 중 오류 발생 PaymentStatus FAILED 로 변경: " + e.getMessage());
-        } finally {
             return GetPaymentResponse.builder()
-                    .payStatus(PayStatus.PAID)
+                    .payStatus(PayStatus.FAILED)
                     .paymentKey(payment.getPaymentKey())
                     .amount(payment.getAmount())
                     .build();
