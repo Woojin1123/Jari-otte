@@ -134,6 +134,7 @@ public class PaymentService {
     @Transactional
     public GetPaymentResponse TossPaymentSuccess(String paymentKey, String orderId, Long amount) {
         // 1. 결제 정보 조회
+        log.info("payUid : {}",orderId);
         Payment payment = paymentRepository.findByPayUid(orderId)
                 .orElseThrow(() -> new PaymentNotFoundException("결제 정보를 찾을 수 없습니다."));
 
