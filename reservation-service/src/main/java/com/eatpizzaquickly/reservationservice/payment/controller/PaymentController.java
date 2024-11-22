@@ -47,6 +47,9 @@ public class PaymentController {
             @RequestParam(name = "amount") Long amount,
             RedirectAttributes redirectAttributes
     ) {
+            System.out.println("orderId: " + orderId);
+            System.out.println("paymentKey: " + paymentKey);
+            System.out.println("amount: " + amount);
             paymentService.TossPaymentSuccess(paymentKey, orderId, amount);
             return ResponseEntity.status(HttpStatus.OK)
                     .header(HttpHeaders.LOCATION, "/payment/success")
