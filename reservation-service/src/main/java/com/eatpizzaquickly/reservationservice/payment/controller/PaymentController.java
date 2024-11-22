@@ -42,9 +42,9 @@ public class PaymentController {
 
     @GetMapping("/toss/success")
     public ResponseEntity<String> handlePaymentSuccess(
-            @RequestParam String orderId,
-            @RequestParam String paymentKey,
-            @RequestParam Long amount,
+            @RequestParam(name = "orderId") String orderId,
+            @RequestParam(name = "paymentKey") String paymentKey,
+            @RequestParam(name = "amount") Long amount,
             RedirectAttributes redirectAttributes
     ) {
             paymentService.TossPaymentSuccess(paymentKey, orderId, amount);
