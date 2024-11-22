@@ -102,6 +102,11 @@ management:
 logging:
   level:
     root: info
+    com:
+      eatpizzaquickly:
+        reservationservice:
+          payment:
+            client: DEBUG
   config: classpath:logback-reservation.xml
 
 resilience4j.circuitbreaker:
