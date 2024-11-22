@@ -140,8 +140,9 @@ public class PaymentService {
         Reservation reservation = reservationRepository.findById(payment.getReservation().getId()).orElseThrow(
                 () -> new NotFoundException("예약을 찾을수 없습니다."));
 
+
+        ResponseEntity<ApiResponse<UserResponseDto>> user = userClient.getUserById(reservation.getUserId());
         try {
-            ResponseEntity<ApiResponse<UserResponseDto>> user = userClient.getUserById(reservation.getUserId());
             // 2. 토스페이먼츠 결제 승인 API 호출
             TossPaymentResponse tossResponse = requestTossPayment(paymentKey, orderId, amount);
 
@@ -172,28 +173,8 @@ public class PaymentService {
                     .paymentKey(payment.getPaymentKey())
                     .amount(payment.getAmount())
                     .build();
-
-        } catch (HttpClientErrorException e) {
-            // 5. HTTP 에러 처리
-            payment.setPayStatus(PayStatus.READY);
-            paymentRepository.save(payment);
-
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                // 세션 만료시
-                log.info("결제 세션이 만료 되었습니다. 다시 결제를 시도해주세요. : {}", e.getMessage());
-            }
-            // 기타 에러
-            log.info("결제 처리 중 오류가 발생했습니다. ! : {}", e.getMessage());
-            return GetPaymentResponse.builder()
-                    .payStatus(PayStatus.READY)
-                    .paymentKey(payment.getPaymentKey())
-                    .amount(payment.getAmount())
-                    .build();
-        } catch (Exception e) {
-            // 6. 기타 예외 처리
-            payment.setPayStatus(PayStatus.FAILED);
-            paymentRepository.save(payment);
-            log.info("결제 처리 중 오류 발생 PaymentStatus FAILED 로 변경: " + e.getMessage());
+        }catch (Exception e){
+            log.info(e.getMessage());
             return GetPaymentResponse.builder()
                     .payStatus(PayStatus.FAILED)
                     .paymentKey(payment.getPaymentKey())
@@ -286,6 +267,7 @@ public class PaymentService {
         );
 
         if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            log.info("토스페이먼츠 API 호출 실패");
             throw new PaymentProcessingException("토스페이먼츠 API 호출 실패");
         }
 
