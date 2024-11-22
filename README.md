@@ -91,6 +91,9 @@ Jari-Otte는 <Strong>마이크로서비스 아키텍처(MSA)</Strong>를 통해 
 
 ![대기열로직 drawio (2)](https://github.com/user-attachments/assets/6c278085-1464-4812-881f-f66e7f9c7a4f)
 
+<h4>카프카 에러 핸들링 플로우</h4>
+
+![카프카에러핸들링1 drawio](https://github.com/user-attachments/assets/fbde39f8-af3c-41a3-a026-0c3cdcb87f72)
 
 
 # 🏗 인프라 구성도
